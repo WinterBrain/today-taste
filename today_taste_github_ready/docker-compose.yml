@@ -1,0 +1,14 @@
+services:
+  today-taste:
+    build: .
+    container_name: today-taste
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_PATH: /app/data/today_taste.sqlite
+      JWT_SECRET: ${JWT_SECRET:-change-this-before-production}
+      TRUST_PROXY: 0
+    volumes:
+      - ./data:/app/data

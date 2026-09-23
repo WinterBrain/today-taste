@@ -1,0 +1,23 @@
+{
+  "name": "today-taste-live",
+  "version": "1.0.0",
+  "private": true,
+  "description": "오늘의 취향 - 실제 DB/API 연동형 운영 버전",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed:demo": "node scripts/seed-demo.js",
+    "seed:demo:reset": "node scripts/seed-demo.js --reset"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.7.0",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "node-cron": "^3.0.3"
+  }
+}
