@@ -134,7 +134,7 @@ app.get('/api/admin/applications',auth,(req,res)=>{
   if(req.user.role!=='admin'){ w.push('a.group_id IN (SELECT group_id FROM operator_groups WHERE user_id=?)'); p.push(req.user.id); }
   if(req.query.status){w.push('a.status=?');p.push(req.query.status);} if(req.query.group_id){w.push('a.group_id=?');p.push(Number(req.query.group_id));}
   if(req.query.q){w.push('(a.name LIKE ? OR a.phone LIKE ?)');p.push('%'+req.query.q+'%','%'+req.query.q+'%');}
-  const rows=db.prepare(`SELECT a.*,g.name group_name,g.icon,s.date,s.start_time,s.end_time,s.capacity,s.fee schedule_fee FROM applications a JOIN groups g ON g.id=a.group_id JOIN schedules s ON s.id=a.schedule_id ${w.length?'WHERE '+w.join(' AND '):''} ORDER BY a.id DESC`).all(...p);
+  const rows=db.prepare(`SELECT a.*,CAST(ROUND((julianday(a.payment_deadline)-julianday('now','localtime'))*86400) AS INTEGER) payment_seconds_left,g.name group_name,g.icon,s.date,s.start_time,s.end_time,s.capacity,s.fee schedule_fee FROM applications a JOIN groups g ON g.id=a.group_id JOIN schedules s ON s.id=a.schedule_id ${w.length?'WHERE '+w.join(' AND '):''} ORDER BY a.id DESC`).all(...p);
   res.json({applications:rows.map(r=>({...r,preferred_times:JSON.parse(r.preferred_times||'[]')}))});
 });
 app.post('/api/admin/applications/:id/approve',auth,(req,res)=>{

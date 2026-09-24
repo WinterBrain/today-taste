@@ -28,6 +28,15 @@ test('PATCH without new fields keeps existing content', async () => {
   assert.ok(g.cover_url);
 });
 
+test('applications list carries motivation and server-computed payment seconds', async () => {
+  const apps = (await api(s.base, '/api/admin/applications', { token: admin })).body.applications;
+  const waiting = apps.find(a => a.status === '입금대기');
+  assert.equal(typeof waiting.payment_seconds_left, 'number');
+  assert.ok('motivation' in apps[0]);
+  const other = apps.find(a => a.status === '접수');
+  assert.equal(other.payment_seconds_left, null);
+});
+
 test('admin can hide a review; operator cannot', async () => {
   const id = (await api(s.base, '/api/admin/reviews', { token: admin })).body.reviews[0].id;
   let r = await api(s.base, `/api/admin/reviews/${id}`, { method: 'PATCH', token: op, body: { hidden: true } });

@@ -208,6 +208,11 @@ const seed = db.transaction(() => {
   past(gids[0],schedules.perfumePast,-9,[
     ['강하늘',25,'직장인','ENFP','010-3905-7741',[5,5,5,4,4],'제가 우디 계열을 좋아하는 이유를 처음 알았어요. 향수 이름을 직접 붙이는 것도 즐거웠습니다.',1]]);
 
+  // 데모 신청 이유 (운영자가 승인할 때 참고하는 문답)
+  const MOTIVATIONS = ['퇴근 후에 핸드폰 말고 손으로 뭔가 하는 시간을 갖고 싶어서 신청했어요.','혼자 배우기엔 막막했는데 소규모라 질문하기 편할 것 같아요.','친구에게 줄 선물을 직접 만들어 보고 싶어요.','대구로 이사 온 지 얼마 안 돼서 새로운 사람들과 이야기해 보고 싶어요.','예전부터 관심은 있었는데 시작할 계기가 없었어요. 이번에 꼭 해보고 싶습니다.','주말에 조용히 집중할 수 있는 취미를 찾고 있어요.'];
+  const setMotivation = db.prepare('UPDATE applications SET motivation=? WHERE id=?');
+  db.prepare('SELECT id FROM applications ORDER BY id').all().forEach((r,i)=>setMotivation.run(MOTIVATIONS[i%MOTIVATIONS.length],r.id));
+
   const insNotif = db.prepare('INSERT INTO notifications(application_id,type,channel,payload,status,created_at) VALUES(?,?,?,?,?,?)');
   insNotif.run(a2,'approved','mock',json({note:'데모 승인 알림',participationPath:'일회용 링크 생성됨'}),'queued',sqlDateTime(-1,9,30));
   insNotif.run(a3,'payment_instruction','mock',json({note:'데모 입금 안내'}),'queued',sqlDateTime(0,9,0));
