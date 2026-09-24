@@ -121,7 +121,7 @@ textarea.input { line-height: 1.6; resize: vertical; }
 @media (max-width: 800px) {
   .app { grid-template-columns: 1fr; }
   .side { position: sticky; z-index: 10; height: auto; flex-direction: row; align-items: center; gap: 12px; padding: 10px 14px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); }
-  .brand small { display: none; }
+  .side .brand small { display: none; }
   .side nav { display: flex; }
   .side nav button { white-space: nowrap; padding: 8px 10px; }
   .side .me { margin: 0 0 0 auto; display: flex; gap: 8px; align-items: center; white-space: nowrap; }

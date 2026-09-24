@@ -11,6 +11,8 @@ cp .env.example .env
 npm start
 ```
 
+테스트: `npm test` (Node 내장 test runner. 임시 DB로 서버를 띄워 API를 검증합니다.)
+
 브라우저에서 `http://localhost:3000` 을 열면 신청자 홈페이지, `http://localhost:3000/admin.html` 을 열면 운영콘솔입니다.
 
 처음 운영콘솔에 접속하면 **초기 총괄자 계정 생성 화면**이 나옵니다. 이 계정 생성은 DB에 사용자가 하나도 없을 때만 가능합니다.
@@ -39,8 +41,8 @@ npm run seed:demo
 
 PG 가상계좌와 카카오 알림톡 키가 없으므로 외부 연동은 아직 자동으로 실행하지 않습니다.
 
-- 승인 시: DB에 일회용 참여 링크가 생성됩니다. 운영자가 링크를 복사해 전달할 수 있습니다.
-- 참여 의사 확인 시: 10시간 입금 기한이 DB에 저장됩니다.
+- 승인 시: DB에 참여 확인 링크가 생성됩니다. 운영자가 콘솔에서 링크를 복사해 전달합니다. 신청자는 참여를 확정한 뒤에도 같은 링크에서 입금 계좌·금액·남은 시간을 다시 볼 수 있습니다.
+- 참여 의사 확인 시: 10시간 입금 기한이 DB에 저장됩니다. 입금 계좌는 `.env` 의 `PAYMENT_BANK` / `PAYMENT_ACCOUNT` / `PAYMENT_HOLDER` 로 설정합니다(비우면 "운영자가 카카오톡으로 안내" 문구가 표시됩니다).
 - 입금: 운영콘솔의 **입금확인** 버튼으로 실제 입금을 확인한 뒤 처리합니다. 처리 시 정원을 다시 확인하며, 정원 초과면 `환불필요`가 됩니다.
 - 10시간 초과: 서버의 cron 작업이 `입금대기`를 `자동취소`로 변경합니다.
 - 카카오 알림톡: `notifications` 테이블에 발송 대기 레코드만 쌓입니다. 실제 API 연결 시 이 테이블/서비스를 전송 큐로 사용할 수 있습니다.
@@ -49,6 +51,8 @@ PG 가상계좌와 카카오 알림톡 키가 없으므로 외부 연동은 아�
 
 - HTTPS 적용
 - `.env`의 `JWT_SECRET` 변경
+- `.env`의 `PAYMENT_*` 입금 계좌 설정
+- `public/assets/js/site-config.js` 의 상호·사업자 정보·고객센터 카카오톡 채널 주소를 실제 값으로 교체
 - 서버/DB 백업 정책 구성
 - 개인정보 처리방침 및 보관기간 법률 검토
 - PG / 카카오 알림톡 실제 API 키 연동
@@ -64,7 +68,7 @@ PG 가상계좌와 카카오 알림톡 키가 없으므로 외부 연동은 아�
 - 운영자: `minjae` / `TasteOp!2026`
 - 운영자: `jiwoo` / `TasteOp!2026`
 
-샘플에는 대구 지역 모임체 5개, 일정 8개, 신청자 15명, 평가 2건, 환불 2건과 여러 신청 상태가 포함됩니다.
+샘플에는 대구 지역 모임체 5개, 예정·지난 일정, 여러 신청 상태, 공개 동의한 후기, 환불 2건이 포함됩니다.
 실제 운영으로 전환하기 전에는 반드시 샘플 계정의 비밀번호를 변경하고 샘플 개인정보를 삭제/교체하세요.
 
 빈 DB에서 샘플을 넣으려면 `npm run seed:demo`, 기존 DB를 샘플로 완전히 초기화하려면 `npm run seed:demo:reset`을 사용합니다.
@@ -76,10 +80,17 @@ PG 가상계좌와 카카오 알림톡 키가 없으므로 외부 연동은 아�
 - 기존 DB도 서버 시작 시 누락 컬럼을 자동 추가하는 간단한 마이그레이션을 수행합니다.
 - 총괄자 운영콘솔의 모임체 수정 화면에서 위 상세 정보를 직접 관리할 수 있습니다.
 
-## GitHub / 모바일 / CSS 분리
-- 신청자 화면 CSS: `public/assets/css/style.css`
-- 운영콘솔 CSS: `public/assets/css/admin.css`
-- GitHub Codespaces: `.devcontainer/devcontainer.json`
-- GitHub Actions 기본 점검: `.github/workflows/ci.yml`
+## 2026-09-24 프론트엔드·디자인 개편
+- 문토·남의집 레퍼런스 분석과 개편 기획: `docs/design/01-reference-analysis.md`, `docs/design/02-redesign-plan.md`
+- 신청자 앱: 해시 라우터(`#/`, `#/g/:id`, `#/g/:id/apply`, `#/find`, `#/guide`), 모임 상세 안에서 일정 선택 후 1단계 신청(신청 이유 포함)
+- 모임체에 사진·추천 대상·포함 사항·호스트 소개·오시는 길 필드 추가, 공개 동의한 후기만 이름을 가려 노출
+- 운영콘솔: 오늘 할 일, 상태 탭, 신청 상세 패널, 모임체 콘텐츠 편집, 후기 공개 관리
+- 이미지: 스톡 출처 `docs/design/image-credits.md`, AI로 채울 자리와 프롬프트 `docs/design/03-image-guide.md` (생성한 파일을 `public/assets/img/` 에 넣고 콘솔의 사진 주소 칸에 경로를 입력)
+
+## 파일 구조
+- 디자인 토큰(색·글꼴·간격, 라이트/다크): `public/assets/css/tokens.css`
+- 신청자·링크 페이지 CSS: `public/assets/css/app.css` / 운영콘솔 CSS: `public/assets/css/admin.css`
+- 스크립트: `public/assets/js/` — `core.js`(순수 함수, 테스트 대상), `ui.js`(DOM 헬퍼), `site-config.js`(사업자 정보), `app.js`, `participation.js`, `review.js`, `admin.js`
+- DB 컬럼 추가: `lib/migrate.js` 의 `COLUMNS` (서버와 시드 스크립트가 함께 사용)
 - Docker 배포: `Dockerfile`, `docker-compose.yml`
 - 자세한 GitHub 절차: `GITHUB_SETUP.md`

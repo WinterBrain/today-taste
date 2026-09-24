@@ -1,7 +1,7 @@
 # 02. 오늘의 취향 프론트엔드·디자인 전면 개편 기획서
 
 > 작성일: 2026-09-24 · 근거 문서: [01-reference-analysis.md](01-reference-analysis.md) · 이미지 계획: [03-image-guide.md](03-image-guide.md)
-> 상태: **승인됨 (2026-09-24)** — 1장의 결정 D1~D6 모두 기본값으로 확정.
+> 상태: **구현 완료 (2026-09-24, 브랜치 `feat/redesign`)** — 1장의 결정 D1~D6 모두 기본값으로 확정. 구현 계획: `docs/superpowers/plans/2026-09-24-frontend-redesign.md`
 
 ---
 
