@@ -31,3 +31,15 @@ test('seed provides rich content and public reviews', async () => {
     db.close();
   } finally { await s.stop(); }
 });
+
+test('CSS uses design tokens: no raw colors/radius/z-index/font sizes, and every var() is defined', () => {
+  const css = f => fs.readFileSync(path.join(ROOT, 'public', 'assets', 'css', f), 'utf8');
+  const tokens = css('tokens.css');
+  const defined = new Set([...tokens.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
+  for (const f of ['app.css', 'admin.css']) {
+    const src = css(f).replace(/\/\*[\s\S]*?\*\//g, '');
+    const raw = src.match(/#[0-9a-f]{3,8}\b|rgba?\(|z-index:\s*\d|border-radius:\s*\d|font-size:\s*\d/gi);
+    assert.equal(raw, null, `${f} has raw values: ${raw}`);
+    for (const m of src.matchAll(/var\((--[\w-]+)/g)) assert.ok(defined.has(m[1]), `${f} uses undefined ${m[1]}`);
+  }
+});

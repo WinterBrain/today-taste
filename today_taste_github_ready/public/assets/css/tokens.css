@@ -1,20 +1,97 @@
-/* 오늘의 취향 디자인 토큰 — 신청자 앱·링크 페이지·운영콘솔 공용 */
+/* ==========================================================================
+   오늘의 취향 디자인 토큰 — 신청자 앱·링크 페이지·운영콘솔 공용
+   - 색·글꼴·크기·반경·층위는 모두 여기서만 정한다. app.css / admin.css 에는 값을 직접 쓰지 않고 var(--토큰)을 쓴다.
+   - 눈으로 확인: /styleguide.html (이 파일을 그대로 읽어 견본을 그린다. 새 토큰은 이름·값·설명 주석을 한 줄에 적는다)
+   - 예외: HTML <meta name="theme-color"> 는 변수를 못 써서 --bg 값(라이트 #FFFFFF, 다크 #141211)을 직접 적는다. --bg 를 바꾸면 index.html 등도 고친다.
+   - 원칙: 포인트 컬러는 --accent 하나, 이모지 없음 (docs/design/02-redesign-plan.md)
+   - 여백은 토큰이 없다. 4px 단위(4·8·12·16·20·24·32·40)를 기본으로, 세밀한 맞춤만 2px 단위(2·6·10·14·18)를 쓴다.
+   ========================================================================== */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&display=swap');
 
 :root {
-  --bg: #FFFFFF; --bg-sunken: #F6F4F2; --line: #ECE8E5;
-  --ink: #1B1918; --ink-2: #4A4543; --ink-3: #8A8481; --ink-4: #B8B2AF;
-  --accent: #E4572E; --accent-soft: #FDEDE7; --accent-ink: #B23E1C;
-  --ok: #2F8F5B; --ok-soft: #E6F3EC; --warn: #C27A0E; --warn-soft: #FBF0DC; --danger: #C8372D;
-  --on-accent: #FFFFFF; --scrim: rgba(20, 18, 17, .48);
-  --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-  --serif: 'Noto Serif KR', 'AppleMyungjo', serif;
-  --r-photo: 8px; --r-btn: 10px; --r-chip: 6px; --r-sheet: 16px;
-  --gutter: 20px; --col: 480px;
-  --fs-12: 12px; --fs-13: 13px; --fs-14: 14px; --fs-15: 15px; --fs-17: 17px; --fs-20: 20px; --fs-24: 24px; --fs-28: 28px;
+  /* 1. 색 — 바탕·선 */
+  --bg: #FFFFFF;            /* 카드·화면 바탕 */
+  --bg-sunken: #F6F4F2;     /* 한 단계 들어간 바탕: 페이지 배경, 정보 상자, 보조 버튼 */
+  --line: #ECE8E5;          /* 구분선·테두리 */
+
+  /* 1. 색 — 글자 (진한 순서) */
+  --ink: #1B1918;           /* 제목·본문 강조 */
+  --ink-2: #4A4543;         /* 본문 */
+  --ink-3: #8A8481;         /* 보조 설명·메타 */
+  --ink-4: #B8B2AF;         /* 비활성·빈 좌석 */
+
+  /* 1. 색 — 포인트 (한 가지만) */
+  --accent: #E4572E;        /* 주요 버튼, 선택 상태, 마감 임박 */
+  --accent-soft: #FDEDE7;   /* 포인트 옅은 배경 */
+  --accent-ink: #B23E1C;    /* 옅은 배경 위 포인트 글자 */
+  --on-accent: #FFFFFF;     /* 포인트·상태색 채움 위 글자 */
+
+  /* 1. 색 — 상태 */
+  --ok: #2F8F5B; --ok-soft: #E6F3EC;       /* 확정·완료 */
+  --warn: #C27A0E; --warn-soft: #FBF0DC;   /* 입금 대기·기한 */
+  --danger: #C8372D;                       /* 오류·거절 */
+
+  /* 1. 색 — 덮개 */
+  --scrim: rgba(20, 18, 17, .48);          /* 시트·모달 뒤 */
+
+  /* 1. 색 — 사진 위 (사진은 테마와 무관하므로 다크 모드에서도 그대로) */
+  --on-photo: #FFFFFF;                     /* 사진 위 글자 */
+  --photo-shade: rgba(10, 8, 7, .72);      /* 사진 아래쪽 글자용 그라디언트 */
+  --photo-tag: rgba(20, 18, 17, .62);      /* 사진 위 반투명 배지·장수 표시 */
+  --photo-btn: rgba(255, 255, 255, .92);   /* 사진 위 원형 버튼 */
+  --photo-btn-ink: #1B1918;                /* 사진 위 원형 버튼 아이콘 */
+  --photo-empty: #2A2522;                  /* 사진을 불러오기 전 배너 바탕 */
+
+  /* 2. 글꼴 */
+  --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;  /* 기본 글꼴 */
+  --serif: 'Noto Serif KR', 'AppleMyungjo', serif;   /* 로고·페이지 제목·큰 숫자 */
+  --mono: ui-monospace, Consolas, monospace;          /* 링크 주소 표시 */
+
+  /* 3. 글자 크기 */
+  --fs-12: 12px;  /* 배지·캡션 */
+  --fs-13: 13px;  /* 메타·힌트 */
+  --fs-14: 14px;  /* 보조 본문, 운영콘솔 본문 */
+  --fs-15: 15px;  /* 신청자 앱 본문·버튼 */
+  --fs-16: 16px;  /* 입력칸 (16px 미만이면 iOS가 확대함) */
+  --fs-17: 17px;  /* 소제목·시트 제목 */
+  --fs-18: 18px;  /* 운영콘솔 로고 */
+  --fs-20: 20px;  /* 섹션 제목 */
+  --fs-24: 24px;  /* 페이지 제목 */
+  --fs-28: 28px;  /* 큰 숫자·대체 커버 글자 */
+  --fs-logo: 19px;    /* 신청자 앱 로고 */
+  --fs-banner: 21px;  /* 홈 배너 문구 */
+
+  /* 4. 모서리 반경 */
+  --r-bar: 2px;       /* 막대 그래프 */
+  --r-tag: 4px;       /* 배지, 작은 썸네일 */
+  --r-chip: 6px;      /* 칩·선택 버튼 */
+  --r-thumb: 6px;     /* 목록 썸네일 */
+  --r-photo: 8px;     /* 사진·스켈레톤 */
+  --r-control: 8px;   /* 운영콘솔 버튼·입력칸, 토스트 */
+  --r-btn: 10px;      /* 신청자 앱 버튼·입력칸·정보 상자·카드 */
+  --r-dialog: 12px;   /* 모달·로그인 카드 */
+  --r-sheet: 16px;    /* 아래에서 올라오는 시트 */
+  --r-round: 50%;     /* 원형 버튼·점 */
+
+  /* 5. 레이아웃 */
+  --gutter: 20px;     /* 신청자 앱 좌우 여백 */
+  --col: 480px;       /* 신청자 앱 최대 폭 */
+
+  /* 6. 쌓임 순서 */
+  --z-sticky: 10;     /* 운영콘솔 상단 메뉴(좁은 화면) */
+  --z-header: 20;     /* 상단 바 */
+  --z-bar: 30;        /* 하단 고정 바 */
+  --z-overlay: 50;    /* 시트·모달 */
+  --z-toast: 60;      /* 토스트 */
+
+  /* 7. 움직임 */
+  --dur-fast: .15s;   /* 펼침 아이콘 회전 등 짧은 전환 */
+
   color-scheme: light;
 }
+
+/* 다크 테마: 아래 두 블록은 같은 값이다(시스템 설정 / data-theme="dark"). 한쪽을 고치면 다른 쪽도 고친다. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #141211; --bg-sunken: #1C1A18; --line: #2E2A27;
@@ -32,6 +109,7 @@
   --scrim: rgba(0, 0, 0, .6); color-scheme: dark;
 }
 
+/* 기본 스타일 */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 400 var(--fs-15)/1.6 var(--font); word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }

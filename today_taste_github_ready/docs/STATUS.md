@@ -4,7 +4,7 @@
 > **기록 범위**: 기능·API·DB·운영 설정처럼 **다른 사람의 작업에 영향을 주는 변경**만 적습니다. 색·여백·문구 같은 디자인 변경은 기능에 영향이 없으므로 적지 않습니다.
 > **갱신 규칙**: 작업할 때마다 이 문서를 함께 갱신합니다(에이전트 지침: `.agents/AGENTS.md` 의 "작업 현황 문서" 절).
 
-**마지막 갱신**: 2026-09-24 · **현재 브랜치 상태**: 개편 작업은 `feat/redesign` 에 있고 **`main` 에 아직 병합되지 않았습니다** (커밋 23개, 테스트 43/43 통과).
+**마지막 갱신**: 2026-09-24 · **현재 브랜치 상태**: 개편 작업은 `feat/redesign` 에 있고 **`main` 에 아직 병합되지 않았습니다** (커밋 24개, 테스트 44/44 통과).
 
 ---
 
@@ -28,6 +28,7 @@
 | 후기 공개 | 평가 제출 시 `publish_ok`(공개 동의)를 받습니다. 공개 API에는 **공개 동의 + 숨기지 않은 + 본문이 있는** 후기만 이름을 `박**` 형태로 가려서 나갑니다. 총괄자가 콘솔에서 숨길 수 있습니다(`PATCH /api/admin/reviews/:id`) | 기존 평가는 모두 비공개로 취급됩니다 |
 | 남은 시간 계산 | 입금 기한까지 남은 시간은 서버가 `payment_seconds_left` 로 계산해서 내려줍니다 (아래 Windows 시간대 문제 때문) | 브라우저에서 SQL 시각을 직접 현재 시각과 비교하지 마세요 |
 | 프론트 구조 | 인라인 스크립트가 `public/assets/js/*.js` 로 분리됐습니다. 신청자 앱은 해시 라우트(`#/`, `#/g/:id`, `#/g/:id/apply?s=`, `#/done`, `#/find`, `#/guide`, `#/policy/:tab`)를 씁니다. `public/assets/css/style.css` 는 삭제됐습니다 | 기존 파일을 고치던 작업이 있다면 새 위치로 옮겨야 합니다 |
+| 디자인 토큰 | 색·글꼴·글자 크기·반경·z-index 는 `public/assets/css/tokens.css` 에서만 정합니다. `app.css`·`admin.css` 에 값을 직접 쓰면 `npm test` 가 실패합니다. 토큰 목록과 견본은 **`/styleguide.html`** (서버 실행 후 열기) | CSS를 고칠 때 새 값이 필요하면 tokens.css 에 이름·값·설명 주석을 한 줄로 추가 |
 | 테스트 | `npm test` (Node 내장 test runner, 새 의존성 없음). 임시 DB로 서버를 띄워 API를 검증합니다 | PR 전에 실행 |
 | 데모 DB | git에 올라간 `data/today_taste.sqlite` 는 **다시 만들지 않았습니다**(사용자 데이터가 있을 수 있음). 새 데모 콘텐츠(사진·후기)를 보려면 임시 DB로 `DB_PATH=./data/demo.sqlite npm run seed:demo:reset` | 화면 확인은 항상 임시 DB로 |
 
@@ -42,6 +43,11 @@
 ### 2026-09-24 — 프론트엔드 개편과 운영 기능 보강 (`feat/redesign`, 미병합)
 
 기획 근거: [01-reference-analysis.md](design/01-reference-analysis.md), [02-redesign-plan.md](design/02-redesign-plan.md) · 구현 계획: [plans/2026-09-24-frontend-redesign.md](superpowers/plans/2026-09-24-frontend-redesign.md)
+
+**디자인 토큰 정리 (같은 날 추가)**
+- `tokens.css` 를 구역별(색·글꼴·글자 크기·반경·레이아웃·쌓임 순서·움직임)로 정리하고 설명 주석을 붙임. 사진 위 색·반경·z-index·로고 글자 크기 토큰 추가, CSS에 남은 직접 값 제거(화면 변화 없음)
+- `/styleguide.html`: tokens.css 를 읽어 색 견본·글자 크기·반경·컴포넌트를 라이트/다크로 보여주는 페이지
+- 테스트: CSS에 직접 색·반경·z-index·글자 크기를 쓰거나 정의되지 않은 토큰을 쓰면 실패
 
 **약관·개인정보·링크 만료·출석 검사 (같은 날 추가)**
 - 이용약관·개인정보처리방침 작성 (`policy.js`): 전자상거래법·개인정보 보호법·정보통신망법, 소비자분쟁해결기준(공연업 준용)을 근거로 함. 신청 화면 동의문도 법정 4항목(목적·항목·보유기간·거부 권리)으로 교체
@@ -151,6 +157,7 @@ PG 가상계좌 자동 입금 확인, 카카오 알림톡 실제 발송(지금�
 | [README.md](../README.md) | 실행 방법, 운영 전 체크리스트, 파일 구조 |
 | [design/01-reference-analysis.md](design/01-reference-analysis.md) | 문토·남의집 레퍼런스 분석 |
 | [design/02-redesign-plan.md](design/02-redesign-plan.md) | 개편 기획서 (디자인 원칙, 화면 설계, API 변경) |
+| [/styleguide.html](../public/styleguide.html) | 디자인 토큰 견본 (서버 실행 후 `http://localhost:3000/styleguide.html`) |
 | [design/03-image-guide.md](design/03-image-guide.md) | 이미지 슬롯·규격·AI 프롬프트 |
 | [design/image-credits.md](design/image-credits.md) | 사용한 이미지 출처 |
 | [superpowers/plans/2026-09-24-frontend-redesign.md](superpowers/plans/2026-09-24-frontend-redesign.md) | 개편 구현 계획 |

@@ -58,7 +58,7 @@ npm test                      # node:test. 임시 DB로 시드+서버를 띄워 
   - `ui.js`: 아이콘(인라인 SVG), 좌석 점, 커버 이미지(없거나 실패 시 타이포그래피 대체), api, toast, 시트. `site-config.js`: 상호·사업자 정보·고객센터·개인정보 보호책임자(운영 전 교체). `policy.js`: 이용약관·개인정보처리방침·신청 동의문 본문(보유 기간은 `lib/retention.js`, 환불 기준은 `core.js` `REFUND_RULES` 와 일치해야 함).
   - `app.js`: 신청자 SPA. 해시 라우트 `#/`, `#/g/:id`, `#/g/:id/apply?s=`, `#/done`, `#/find`, `#/guide`, `#/policy/:tab`. `routes`/`actions` 테이블 + `data-action` 이벤트 위임.
   - `admin.js`: 운영콘솔(800px 이하 모바일 레이아웃). `participation.js`, `review.js`: 토큰 링크 페이지(서버가 `/participation/:token`, `/review/:token` 으로 HTML 서빙).
-- CSS: `tokens.css`(색·글꼴·간격, 라이트/다크 토큰) → `app.css`(신청자·링크 페이지) / `admin.css`(콘솔). 포인트 컬러는 `--accent` 한 가지만 쓰고, UI에 이모지를 쓰지 않는다(디자인 원칙은 `docs/design/02-redesign-plan.md`).
+- CSS: `tokens.css`(색·글꼴·글자 크기·반경·z-index, 라이트/다크 토큰. 유일한 기준) → `app.css`(신청자·링크 페이지) / `admin.css`(콘솔). 두 CSS에는 색·반경·z-index·글자 크기 값을 직접 쓰지 않는다(테스트가 검사). 새 값은 tokens.css 에 이름·값·설명 주석 한 줄로 추가하고, `/styleguide.html` 에서 견본을 확인한다. 포인트 컬러는 `--accent` 한 가지만 쓰고, UI에 이모지를 쓰지 않는다(디자인 원칙은 `docs/design/02-redesign-plan.md`).
 - 모임체 상세 정보(진행 순서, 준비물, FAQ)는 `groups` 테이블의 `*_json` TEXT 컬럼에 JSON 문자열로 저장된다.
 
 ## 배포 관련 참고
