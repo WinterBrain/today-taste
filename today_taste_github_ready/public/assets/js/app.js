@@ -69,9 +69,9 @@
   actions.retry = () => { S.error = ''; load(); };
 
   function renderSkeleton() {
-    const card = '<div><div class="skel" style="aspect-ratio:4/3"></div><div class="skel" style="height:14px;margin-top:10px"></div><div class="skel" style="height:14px;margin-top:6px;width:60%"></div></div>';
+    const card = '<div><div class="skel" style="aspect-ratio:4/3"></div><div class="skel" style="height:14px;margin-top:var(--sp-10)"></div><div class="skel" style="height:14px;margin-top:var(--sp-6);width:60%"></div></div>';
     return topbar({}) + `<div class="pad"><div class="skel" style="aspect-ratio:16/10"></div></div>
-      <div class="section"><div class="skel" style="height:24px;width:40%"></div><div class="grid2" style="margin-top:14px">${card.repeat(4)}</div></div>`;
+      <div class="section"><div class="skel" style="height:24px;width:40%"></div><div class="grid2" style="margin-top:var(--sp-14)">${card.repeat(4)}</div></div>`;
   }
   function renderLoadError() {
     return topbar({}) + `<div class="empty">${UI.icon('info')}<h3>모임 정보를 불러오지 못했어요</h3><p>${esc(S.error)}</p><button class="btn btn-line" data-action="retry">다시 시도</button></div>`;

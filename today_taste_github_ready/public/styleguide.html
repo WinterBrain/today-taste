@@ -11,30 +11,30 @@
 <style>
   /* 이 페이지 전용 배치. 견본의 색·크기는 모두 tokens.css 에서 읽는다. */
   body { background: var(--bg); }
-  .sg { max-width: 960px; margin: 0 auto; padding: 32px 20px 80px; }
-  .sg-head { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+  .sg { max-width: 960px; margin: 0 auto; padding: var(--sp-32) var(--sp-20) var(--sp-64); }
+  .sg-head { display: flex; align-items: flex-end; gap: var(--sp-12); flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: var(--sp-20); }
   .sg-head h1 { margin: 0; font-size: var(--fs-28); }
-  .sg-head p { margin: 4px 0 0; color: var(--ink-3); font-size: var(--fs-14); }
+  .sg-head p { margin: var(--sp-4) 0 0; color: var(--ink-3); font-size: var(--fs-14); }
   .sg-head .spacer { flex: 1; }
-  .sg-theme { display: flex; gap: 4px; }
-  .sg h2 { font-size: var(--fs-20); margin: 40px 0 12px; }
-  .sg-note { color: var(--ink-3); font-size: var(--fs-14); margin: 0 0 12px; }
-  .sg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .sg-theme { display: flex; gap: var(--sp-4); }
+  .sg h2 { font-size: var(--fs-20); margin: var(--sp-40) 0 var(--sp-12); }
+  .sg-note { color: var(--ink-3); font-size: var(--fs-14); margin: 0 0 var(--sp-12); }
+  .sg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--sp-12); }
   .sg-tok { border: 1px solid var(--line); border-radius: var(--r-btn); overflow: hidden; background: var(--bg); }
   .sg-tok .sw { height: 64px; border-bottom: 1px solid var(--line); }
   .sg-tok .sw.checker { background-image: linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%), linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%); background-size: 16px 16px; background-position: 0 0, 8px 8px; position: relative; }
   .sg-tok .sw.checker i { position: absolute; inset: 0; }
-  .sg-tok .meta { padding: 10px 12px; display: grid; gap: 2px; font-size: var(--fs-13); }
+  .sg-tok .meta { padding: var(--sp-10) var(--sp-12); display: grid; gap: var(--sp-2); font-size: var(--fs-13); }
   .sg-tok code, .sg-row code { font-family: var(--mono); font-size: var(--fs-13); color: var(--ink); }
   .sg-tok .val, .sg-row .val { color: var(--ink-3); font-family: var(--mono); font-size: var(--fs-12); }
   .sg-tok .desc, .sg-row .desc { color: var(--ink-2); }
   .sg-rows { display: grid; border-top: 1px solid var(--line); }
-  .sg-row { display: grid; grid-template-columns: 160px 1fr 200px; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-14); }
+  .sg-row { display: grid; grid-template-columns: 160px 1fr 200px; gap: var(--sp-12); align-items: center; padding: var(--sp-12) 0; border-bottom: 1px solid var(--line); font-size: var(--fs-14); }
   .sg-row .demo { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .sg-box { width: 72px; height: 48px; background: var(--accent-soft); border: 1px solid var(--accent); }
-  .sg-comp { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-btn); margin-bottom: 12px; }
+  .sg-comp { display: flex; gap: var(--sp-12); flex-wrap: wrap; align-items: center; padding: var(--sp-16); border: 1px solid var(--line); border-radius: var(--r-btn); margin-bottom: var(--sp-12); }
   .sg-comp > small { width: 100%; color: var(--ink-3); font-size: var(--fs-13); }
-  @media (max-width: 640px) { .sg-row { grid-template-columns: 1fr; gap: 4px; } }
+  @media (max-width: 640px) { .sg-row { grid-template-columns: 1fr; gap: var(--sp-4); } }
 </style>
 </head>
 <body>
@@ -57,9 +57,9 @@
   <ul class="bullets">
     <li>포인트 컬러는 <code>--accent</code> 하나만 씁니다. 상태색(<code>--ok</code>·<code>--warn</code>·<code>--danger</code>)은 상태 표시에만 씁니다.</li>
     <li>UI에 이모지를 쓰지 않습니다. 아이콘은 <code>ui.js</code> 의 인라인 SVG(선 1.75px)를 씁니다.</li>
-    <li>여백은 4px 단위(4·8·12·16·20·24·32·40)가 기본이고, 세밀한 맞춤만 2px 단위를 씁니다.</li>
+    <li>여백(padding·margin·gap)은 <code>--sp-숫자</code> 토큰만 씁니다(숫자 = px). 4px 단위가 기본이고 2px 단위는 세밀한 맞춤용입니다.</li>
     <li>숫자(가격·시간·인원)에는 <code>.num</code>(고정폭 숫자)을 붙입니다. 로고·페이지 제목은 <code>.serif</code>.</li>
-    <li>CSS 파일에는 색·반경·글자 크기·z-index 값을 직접 쓰지 않고 토큰을 씁니다.</li>
+    <li>CSS 파일에는 색·반경·글자 크기·z-index·여백 값을 직접 쓰지 않고 토큰을 씁니다. <code>npm test</code> 가 검사합니다. 전체 규칙은 <code>.agents/AGENTS.md</code> 의 "디자인 작업 규칙".</li>
   </ul>
 
   <h2>신청자 앱 컴포넌트</h2>
@@ -118,20 +118,21 @@
 
   function draw() {
     const html = groups.map(g => {
-      const kind = /색/.test(g.title) ? 'color' : /글자 크기/.test(g.title) ? 'size' : /반경/.test(g.title) ? 'radius' : /글꼴/.test(g.title) ? 'font' : 'plain';
+      const kind = /색/.test(g.title) ? 'color' : /글자 크기/.test(g.title) ? 'size' : /반경/.test(g.title) ? 'radius' : /여백/.test(g.title) ? 'space' : /글꼴/.test(g.title) ? 'font' : 'plain';
       let body;
       if (kind === 'color') {
         body = `<div class="sg-grid">${g.items.map(t => `<div class="sg-tok"><div class="sw checker"><i style="background:var(${t.name})"></i></div><div class="meta"><code>${t.name}</code><span class="val">${esc(val(t.name))}</span>${t.note ? `<span class="desc">${esc(t.note)}</span>` : ''}</div></div>`).join('')}</div>`;
       } else {
         const demo = t => kind === 'size' ? `<span class="demo" style="font-size:var(${t.name})">오늘의 취향 39,000원</span>`
           : kind === 'radius' ? `<div class="sg-box" style="border-radius:var(${t.name})"></div>`
+          : kind === 'space' ? `<div style="width:var(${t.name});height:16px;background:var(--accent)"></div>`
           : kind === 'font' ? `<span class="demo" style="font-family:var(${t.name});font-size:var(--fs-17)">오늘의 취향 Taste 2026</span>`
           : '<span></span>';
         body = `<div class="sg-rows">${g.items.map(t => `<div class="sg-row"><div><code>${t.name}</code><div class="val">${esc(val(t.name))}</div></div>${demo(t)}<span class="desc">${esc(t.note)}</span></div>`).join('')}</div>`;
       }
       return `<h2>${esc(g.title)}</h2>${body}`;
     }).join('');
-    document.getElementById('tokens').innerHTML = html + '<p class="sg-note" style="margin-top:16px">다크 테마 값은 tokens.css 아래쪽 두 블록에 있습니다. 위 테마 버튼으로 전환해 확인하세요.</p>';
+    document.getElementById('tokens').innerHTML = html + '<p class="sg-note" style="margin-top:var(--sp-16)">다크 테마 값은 tokens.css 아래쪽 두 블록에 있습니다. 위 테마 버튼으로 전환해 확인하세요.</p>';
   }
 
   fetch('/assets/css/tokens.css').then(r => r.text()).then(css => { groups = parse(css); draw(); })

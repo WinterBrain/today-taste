@@ -57,9 +57,23 @@ npm test                      # node:test. 임시 DB로 시드+서버를 띄워 
   - `core.js`: 순수 함수(날짜·시간·좌석·검증·해시 파싱·필터·카운트다운). UMD라 `tests/core.test.js` 와 `server.js`(이름 가림·직업 목록)에서 require 한다. 로직은 가능하면 여기에 두고 테스트한다.
   - `ui.js`: 아이콘(인라인 SVG), 좌석 점, 커버 이미지(없거나 실패 시 타이포그래피 대체), api, toast, 시트. `site-config.js`: 상호·사업자 정보·고객센터·개인정보 보호책임자(운영 전 교체). `policy.js`: 이용약관·개인정보처리방침·신청 동의문 본문(보유 기간은 `lib/retention.js`, 환불 기준은 `core.js` `REFUND_RULES` 와 일치해야 함).
   - `app.js`: 신청자 SPA. 해시 라우트 `#/`, `#/g/:id`, `#/g/:id/apply?s=`, `#/done`, `#/find`, `#/guide`, `#/policy/:tab`. `routes`/`actions` 테이블 + `data-action` 이벤트 위임.
-  - `admin.js`: 운영콘솔(800px 이하 모바일 레이아웃). `participation.js`, `review.js`: 토큰 링크 페이지(서버가 `/participation/:token`, `/review/:token` 으로 HTML 서빙).
-- CSS: `tokens.css`(색·글꼴·글자 크기·반경·z-index, 라이트/다크 토큰. 유일한 기준) → `app.css`(신청자·링크 페이지) / `admin.css`(콘솔). 두 CSS에는 색·반경·z-index·글자 크기 값을 직접 쓰지 않는다(테스트가 검사). 새 값은 tokens.css 에 이름·값·설명 주석 한 줄로 추가하고, `/styleguide.html` 에서 견본을 확인한다. 포인트 컬러는 `--accent` 한 가지만 쓰고, UI에 이모지를 쓰지 않는다(디자인 원칙은 `docs/design/02-redesign-plan.md`).
+  - `admin.js`: 운영콘솔(PC 전용, 800px 이하에서는 PC 권장 안내만 표시). `participation.js`, `review.js`: 토큰 링크 페이지(서버가 `/participation/:token`, `/review/:token` 으로 HTML 서빙).
+- CSS: `tokens.css`(유일한 기준) → `app.css`(신청자·링크 페이지) / `admin.css`(콘솔). 규칙은 아래 "디자인 작업 규칙".
 - 모임체 상세 정보(진행 순서, 준비물, FAQ)는 `groups` 테이블의 `*_json` TEXT 컬럼에 JSON 문자열로 저장된다.
+
+## 디자인 작업 규칙 (화면·CSS·문구를 고칠 때 반드시)
+
+화면을 바꾸는 작업은 사람이든 에이전트든 이 규칙을 따른다. 1~3번은 `npm test`(`tests/assets.test.js`)가 검사한다.
+
+1. **값은 토큰으로만**: `app.css`·`admin.css` 에 색(hex·rgba), 글자 크기, 모서리 반경, z-index, 여백(padding·margin·gap)을 숫자로 쓰지 않고 `public/assets/css/tokens.css` 의 `var(--토큰)` 을 쓴다. 여백은 `--sp-숫자`(숫자=px, 4px 단위 기본). 예외는 1px(테두리 보정), 위치 좌표(top·left 로 그리는 점·선), 크기(width·height)뿐이다.
+2. **새 값이 꼭 필요하면** tokens.css 의 맞는 구역에 `--이름: 값;` 과 설명 주석을 한 줄로 추가한다. 비슷한 토큰이 이미 있으면 그것을 쓴다(1~2px 차이로 새 토큰을 만들지 않는다).
+3. **정의되지 않은 토큰을 쓰지 않는다.** 다크 테마 색을 추가하면 tokens.css 아래 두 다크 블록에 모두 넣는다.
+4. **있는 부품을 먼저 쓴다**: 새 버튼·배지·칩·입력칸을 만들기 전에 `/styleguide.html`(서버 실행 후)에서 기존 클래스(`.btn` `.chip` `.choice` `.badge` `.seats` `.field` `.notice` `.sheet` 등)를 확인하고 재사용한다. 운영콘솔은 `admin.css` 의 `.btn.primary/.outline/.danger/.sm`, `.badge.b-green/.b-amber/.b-red`.
+5. **시각 원칙**: 포인트 컬러는 `--accent` 하나(화면당 핵심 1곳), 상태색은 상태 표시에만. 이모지 금지, 아이콘은 `ui.js` 인라인 SVG. 그라데이션·유리 효과·색 그림자 금지(사진 위 글자용 `--photo-shade` 만 예외). 버튼은 알약형 금지, "카드 안의 카드" 금지. 숫자에는 `.num`, 로고·페이지 제목에는 `.serif`. 터치 영역 최소 44px.
+6. **문구**: 해요체, 한 문장에 한 정보. 형용사보다 숫자·사실. 버튼은 결과를 말한다(`신청 보내기`). 오류는 원인 + 해결 방법.
+7. **확인**: `npm test` 통과, 신청자 화면은 480px 폭에서, 라이트·다크 모두 확인. 운영콘솔은 PC 화면 기준(휴대폰 대응은 하지 않는다).
+
+자세한 배경과 화면별 설계는 `docs/design/02-redesign-plan.md`(2장 디자인 시스템, 4장 화면 설계).
 
 ## 배포 관련 참고
 - GitHub Pages로는 실행 불가(Express + SQLite 필요). VPS/Docker 등 Node 실행 가능한 서버에 배포한다.
