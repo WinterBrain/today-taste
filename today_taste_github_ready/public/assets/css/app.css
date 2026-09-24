@@ -93,8 +93,9 @@ body { background: var(--bg-sunken); }
 .empty .btn { margin-top: var(--sp-16); }
 
 /* 푸터 */
-/* 푸터가 있는 화면은 하단 바가 없으므로 .shell 아래 여백까지 푸터 바탕으로 채운다 */
-.footer { margin: var(--sp-56) 0 calc(var(--space-bottom) * -1); padding: var(--sp-28) var(--gutter) calc(var(--sp-40) + var(--space-bottom)); background: var(--bg-sunken); font-size: var(--fs-13); color: var(--ink-3); line-height: 1.7; }
+/* 푸터가 있는 화면(홈·이용 안내·약관)은 하단 고정 바가 없으니 .shell 의 아래 공간을 비우지 않는다 */
+.shell:has(.footer) { padding-bottom: 0; }
+.footer { margin-top: var(--sp-56); padding: var(--sp-28) var(--gutter) var(--sp-40); background: var(--bg-sunken); font-size: var(--fs-13); color: var(--ink-3); line-height: 1.7; }
 .footer .links { display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-14); margin-bottom: var(--sp-14); color: var(--ink-2); font-weight: 500; }
 .footer .cs { margin-bottom: var(--sp-14); }
 .footer .cs b { color: var(--ink); }
