@@ -33,9 +33,9 @@
   function fallbackCover(group, cls) {
     return `<div class="cover-fallback ${cls || ''}" role="img" aria-label="${esc(group.name)}"><span class="serif">${esc(group.tag || group.field)}</span><small>${esc(group.field)}</small></div>`;
   }
-  function cover(url, group, cls = '') {
+  function cover(url, group, cls = '', { eager = false } = {}) {
     if (!url) return fallbackCover(group, cls);
-    return `<img class="${cls}" src="${esc(url)}" alt="${esc(group.name)} 사진" loading="lazy" decoding="async" data-fallback-tag="${esc(group.tag || group.field)}" data-fallback-field="${esc(group.field)}">`;
+    return `<img class="${cls}" src="${esc(url)}" alt="${esc(group.name)} 사진" loading="${eager ? 'eager' : 'lazy'}" decoding="async" data-fallback-tag="${esc(group.tag || group.field)}" data-fallback-field="${esc(group.field)}">`;
   }
   document.addEventListener('error', e => {
     const img = e.target;

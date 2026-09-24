@@ -174,7 +174,121 @@
     return h + footer();
   };
 
-  /* ---------- 상세·신청·기타 화면은 아래에 이어서 ---------- */
+  /* ---------- 모임 상세 ---------- */
+
+  routes.g = function (parts, query) {
+    const g = byId(parts[1]);
+    if (!g) return topbar({ back: true }) + `<div class="empty">${UI.icon('info')}<h3>모임을 찾을 수 없어요</h3><p>모집이 끝났거나 주소가 바뀌었어요.</p><a class="btn btn-line" href="#/">홈으로</a></div>`;
+    if (parts[2] === 'apply') return renderApply(g, query);
+    if (S.sel.groupId !== g.id) { const n = TT.nextSchedule(g); S.sel = { groupId: g.id, date: n ? n.date : null, scheduleId: null }; }
+    return renderDetail(g);
+  };
+  actions.pickDate = el => { S.sel.date = el.dataset.date; S.sel.scheduleId = null; render(); };
+  actions.pickSchedule = el => { S.sel.scheduleId = Number(el.dataset.id); render(); };
+  actions.apply = () => {
+    if (!S.sel.scheduleId) {
+      const box = document.getElementById('schedule');
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
+      UI.toast('일정을 먼저 골라주세요');
+      return;
+    }
+    go(`#/g/${S.sel.groupId}/apply?s=${S.sel.scheduleId}`);
+  };
+  actions.share = async () => {
+    const g = byId(S.sel.groupId); const url = location.href;
+    if (navigator.share) { try { await navigator.share({ title: g.name, text: g.tagline, url }); } catch (e) {} }
+    else UI.copy(url);
+  };
+  actions.allReviews = () => { const g = byId(S.sel.groupId); UI.openSheet(`후기 ${g.stats.review_count}개`, g.reviews.map(r => reviewCard(r, { showGroup: false })).join('')); };
+  actions.policy = el => UI.openSheet(el.dataset.tab === 'terms' ? '이용약관' : '개인정보 수집·이용 동의', policyBody(el.dataset.tab));
+
+  function trustLine(st) {
+    const items = [];
+    if (st.review_count) items.push(`${UI.icon('star', 'icon star is-on')}<b class="num">${Number(st.rating_avg).toFixed(1)}</b> (후기 ${st.review_count})`);
+    if (st.sessions_done) items.push(`${st.sessions_done}회 진행`);
+    if (st.participants) items.push(`누적 ${st.participants}명 참여`);
+    return items.length ? items.map(x => `<span>${x}</span>`).join('') : '<span class="badge badge-soft">새로 열린 모임</span>';
+  }
+  function scheduleBlock(g) {
+    const all = (g.schedules || []).slice().sort((a, b) => (a.date + a.start_time).localeCompare(b.date + b.start_time));
+    if (!all.length) return `<div class="empty compact">${UI.icon('calendar')}<h3>지금은 모집 중인 일정이 없어요</h3><a class="btn btn-line" href="${esc(SITE.kakaoChannelUrl)}" target="_blank" rel="noopener">다음 일정 소식 받기</a></div>`;
+    const dates = [...new Set(all.map(s => s.date))];
+    const dateOpen = d => all.some(s => s.date === d && Number(s.remaining) > 0);
+    const chips = dates.map(d => {
+      const open = dateOpen(d), on = S.sel.date === d;
+      return `<button class="date-chip${on ? ' is-on' : ''}${open ? '' : ' is-closed'}" ${open ? `data-action="pickDate" data-date="${d}"` : 'disabled'} aria-pressed="${on}"><b>${TT.fmtDateShort(d).split('(')[0]}</b><span>${TT.dowKo(d)}</span></button>`;
+    }).join('');
+    const sessions = all.filter(s => s.date === S.sel.date).map(s => {
+      const info = TT.seatInfo(s.capacity, s.remaining), on = S.sel.scheduleId === s.id;
+      return `<button class="session${on ? ' is-on' : ''}" ${info.full ? 'disabled' : `data-action="pickSchedule" data-id="${s.id}"`} aria-pressed="${on}">
+        <div><b class="num">${TT.timeRange(s.start_time, s.end_time)}</b><span>${esc(s.place)}${Number(s.fee) !== Number(g.fee) ? ` · ${won(s.fee)}` : ''}</span></div>
+        ${UI.seats(info)}${on ? UI.icon('check', 'icon session-check') : ''}
+      </button>`;
+    }).join('');
+    return `<div class="date-chips hscroll">${chips}</div><div class="sessions">${sessions || '<p class="muted">이 날은 모두 마감됐어요.</p>'}</div>`;
+  }
+  const bulletList = items => items.length ? `<ul class="bullets">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+  const readSection = (title, body) => body ? `<div class="rule"></div><section class="section read"><h2>${esc(title)}</h2>${body}</section>` : '';
+
+  function renderDetail(g) {
+    const photos = [g.cover_url, ...TT.listOf(g.gallery_json)].filter(Boolean);
+    const forWhom = TT.listOf(g.for_whom_json), includes = TT.listOf(g.includes_json), order = TT.listOf(g.order_json), prep = TT.listOf(g.prep_json), faq = TT.pairsOf(g.faq_json);
+    const refund = String(g.refund_policy || '').split('\n').map(x => x.trim()).filter(Boolean);
+    const schedules = g.schedules || [];
+    const sel = schedules.find(s => s.id === S.sel.scheduleId);
+    const bands = ['오전', '오후', '저녁'].filter(b => schedules.some(s => TT.band(s.start_time) === b));
+    const cap = schedules[0]?.capacity || 3;
+    const firstOpen = TT.nextSchedule(g);
+    const hostInitial = (String(g.host_name || '').split('·').pop().trim() || '?').slice(0, 1);
+
+    let h = `<div data-title="${esc(g.name)} — 오늘의 취향"></div>`;
+    h += `<div class="gallery">
+      <div class="gallery-track hscroll" data-gallery>${(photos.length ? photos : ['']).map((u, i) => `<div class="gallery-item">${UI.cover(u, g, '', { eager: i === 0 })}</div>`).join('')}</div>
+      <button class="icon-btn over left" data-action="back" aria-label="뒤로">${UI.icon('back')}</button>
+      <button class="icon-btn over right" data-action="share" aria-label="공유">${UI.icon('share')}</button>
+      ${photos.length > 1 ? `<span class="gallery-count num" data-gallery-count>1/${photos.length}</span>` : ''}
+    </div>`;
+    h += `<section class="pad title-block">
+      <div class="crumb">${esc(g.field)} · ${esc(g.tag)}</div>
+      <h1 class="serif">${esc(g.name)}</h1>
+      <p class="tagline">${esc(g.tagline)}</p>
+      <div class="trust">${trustLine(g.stats || {})}</div>
+    </section>`;
+    h += `<section class="pad"><ul class="facts">
+      <li>${UI.icon('clock')}<div><b>${esc(g.duration)}</b>${bands.length ? `<span>${bands.join('·')} 진행</span>` : ''}</div></li>
+      <li>${UI.icon('users')}<div><b>최대 ${cap}명 · 운영자 승인 후 참여 확정</b>${firstOpen ? `<span>${UI.seats(TT.seatInfo(firstOpen.capacity, firstOpen.remaining))} 가장 가까운 일정 기준</span>` : ''}</div></li>
+      <li>${UI.icon('wallet')}<div><b class="num">${won(g.fee)}</b>${g.fee_note ? `<span>${esc(g.fee_note)}</span>` : ''}</div></li>
+      <li>${UI.icon('pin')}<div><b>대구 중구 ${esc(g.place)}</b><span>정확한 위치는 참여 확정 후 안내해요</span></div></li>
+    </ul></section>`;
+    h += `<div class="rule"></div><section class="section" id="schedule">${sectionHead('일정 선택', '원하는 날짜를 골라주세요')}${scheduleBlock(g)}</section>`;
+    if (g.reviews && g.reviews.length) {
+      const avg = k => g.reviews.reduce((n, r) => n + Number(r[k]), 0) / g.reviews.length;
+      h += `<div class="rule"></div><section class="section">${sectionHead('참여한 분들의 후기')}
+        <div class="score"><div class="score-big">${UI.icon('star', 'icon star is-on')}<b class="num">${Number(g.stats.rating_avg).toFixed(1)}</b><span>후기 ${g.stats.review_count}개</span></div>
+        <dl class="score-bars">${[['progress', '진행'], ['place', '장소'], ['value', '가격 만족']].map(([k, l]) => `<div><dt>${l}</dt><dd><i style="width:${avg(k) / 5 * 100}%"></i></dd><dd class="num">${avg(k).toFixed(1)}</dd></div>`).join('')}</dl></div>
+        <div class="review-list">${g.reviews.slice(0, 2).map(r => reviewCard(r, { showGroup: false })).join('')}</div>
+        ${g.reviews.length > 2 ? '<button class="btn btn-line btn-block" data-action="allReviews">후기 전체 보기</button>' : ''}</section>`;
+    }
+    const introParas = String(g.intro || '').split(/\n{2,}/).map(x => x.trim()).filter(Boolean);
+    const inline = photos.slice(1, 3);
+    h += readSection('소개', introParas.map((p, i) => `<p>${esc(p)}</p>${inline[i] ? `<figure class="inline-photo">${UI.cover(inline[i], g)}</figure>` : ''}`).join(''));
+    h += readSection('이런 분께 추천해요', bulletList(forWhom));
+    h += readSection('포함 사항', includes.length ? `<ul class="checks">${includes.map(x => `<li>${UI.icon('check')}<span>${esc(x)}</span></li>`).join('')}</ul>` : '');
+    h += readSection('진행 순서', order.length ? `<ol class="timeline">${order.map(TT.parseStep).map((s, i) => `<li><span class="t num">${esc(s.time || String(i + 1))}</span><span>${esc(s.text)}</span></li>`).join('')}</ol>` : '');
+    h += readSection('준비물', bulletList(prep));
+    if (g.host_name) h += readSection('호스트', `<div class="host">${g.host_photo_url ? `<img src="${esc(g.host_photo_url)}" alt="" class="host-photo">` : `<span class="host-photo initial">${esc(hostInitial)}</span>`}<div><span class="host-label">호스트</span><b>${esc(g.host_name)}</b><span>${esc(g.host_role)}</span></div></div>${g.host_bio ? `<p>${esc(g.host_bio)}</p>` : ''}`);
+    h += readSection('오시는 길', `<p class="place"><b>대구 중구 ${esc(g.place)}</b>${g.place_note ? `<br>${esc(g.place_note)}` : ''}</p><p class="muted">정확한 위치는 참여 확정 후 안내해요.</p><a class="btn btn-line" href="https://map.kakao.com/?q=${encodeURIComponent('대구 ' + g.place)}" target="_blank" rel="noopener">${UI.icon('external', 'icon icon-sm')}카카오맵에서 보기</a>`);
+    h += readSection('환불 규정', `${bulletList(refund)}<p class="muted refund-note">승인 전 취소는 언제나 전액 환불돼요. 날짜 기준은 자정이에요.</p>`);
+    h += readSection('자주 묻는 질문', faq.length ? faqList(faq) : '');
+    const others = S.groups.filter(x => x.id !== g.id && TT.openSchedules(x).length).sort((a, b) => (b.field === g.field) - (a.field === g.field));
+    if (others.length) h += `<div class="rule"></div><section class="section">${sectionHead('다른 모임도 둘러보세요')}<div class="hscroll">${others.map(x => groupCard(x, { wide: true })).join('')}</div></section>`;
+    const open = TT.openSchedules(g).length > 0;
+    h += `<div class="bottom-bar"><div class="sum"><b class="num">${won(sel ? sel.fee : g.fee)}</b><span>${sel ? `${TT.fmtDateShort(sel.date)} ${TT.timeLabel(sel.start_time)}` : open ? '일정을 골라주세요' : '모집 중인 일정이 없어요'}</span></div><button class="btn btn-primary" data-action="apply" ${open ? '' : 'disabled'}>신청하기</button></div>`;
+    return h;
+  }
+
+  /* ---------- 신청·기타 화면은 아래에 이어서 ---------- */
 
   load();
 })();
