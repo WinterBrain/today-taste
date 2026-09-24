@@ -1,0 +1,47 @@
+/* 오늘의 취향 디자인 토큰 — 신청자 앱·링크 페이지·운영콘솔 공용 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&display=swap');
+
+:root {
+  --bg: #FFFFFF; --bg-sunken: #F6F4F2; --line: #ECE8E5;
+  --ink: #1B1918; --ink-2: #4A4543; --ink-3: #8A8481; --ink-4: #B8B2AF;
+  --accent: #E4572E; --accent-soft: #FDEDE7; --accent-ink: #B23E1C;
+  --ok: #2F8F5B; --ok-soft: #E6F3EC; --warn: #C27A0E; --warn-soft: #FBF0DC; --danger: #C8372D;
+  --on-accent: #FFFFFF; --scrim: rgba(20, 18, 17, .48);
+  --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  --serif: 'Noto Serif KR', 'AppleMyungjo', serif;
+  --r-photo: 8px; --r-btn: 10px; --r-chip: 6px; --r-sheet: 16px;
+  --gutter: 20px; --col: 480px;
+  --fs-12: 12px; --fs-13: 13px; --fs-14: 14px; --fs-15: 15px; --fs-17: 17px; --fs-20: 20px; --fs-24: 24px; --fs-28: 28px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141211; --bg-sunken: #1C1A18; --line: #2E2A27;
+    --ink: #F3EFEC; --ink-2: #C9C2BD; --ink-3: #8E8783; --ink-4: #5E5854;
+    --accent: #F06A43; --accent-soft: #3A211A; --accent-ink: #FFB39C;
+    --ok: #5CC28A; --ok-soft: #18301F; --warn: #E3A445; --warn-soft: #33270F; --danger: #F07A70;
+    --scrim: rgba(0, 0, 0, .6); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141211; --bg-sunken: #1C1A18; --line: #2E2A27;
+  --ink: #F3EFEC; --ink-2: #C9C2BD; --ink-3: #8E8783; --ink-4: #5E5854;
+  --accent: #F06A43; --accent-soft: #3A211A; --accent-ink: #FFB39C;
+  --ok: #5CC28A; --ok-soft: #18301F; --warn: #E3A445; --warn-soft: #33270F; --danger: #F07A70;
+  --scrim: rgba(0, 0, 0, .6); color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 var(--fs-15)/1.6 var(--font); word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+img { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+a { color: inherit; text-decoration: none; }
+.num { font-variant-numeric: tabular-nums; }
+.serif { font-family: var(--serif); font-weight: 700; letter-spacing: -0.01em; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.icon { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
