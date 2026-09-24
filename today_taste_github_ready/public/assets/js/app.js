@@ -36,13 +36,25 @@
   let lastRoute = null;
   function afterRender() {
     const route = location.hash.split('?')[0];
-    if (route !== lastRoute) { window.scrollTo(0, 0); lastRoute = route; }
+    const changed = route !== lastRoute;
+    if (changed) { window.scrollTo(0, 0); lastRoute = route; }
     document.title = document.querySelector('[data-title]')?.dataset.title || '오늘의 취향 — 대구에서 세 명이 만나는 원데이 모임';
+    // 화면 전체 대신 바뀐 페이지 제목만 스크린리더에 알린다
+    const status = document.getElementById('route-status');
+    if (changed && status) status.textContent = document.title;
     const track = document.querySelector('[data-gallery]'), count = document.querySelector('[data-gallery-count]');
     if (track && count) track.addEventListener('scroll', () => { count.textContent = `${Math.round(track.scrollLeft / track.clientWidth) + 1}/${track.children.length}`; }, { passive: true });
   }
 
   window.addEventListener('hashchange', () => { UI.closeSheet(); render(); });
+  // 호스트 사진을 못 불러오면 이름 첫 글자로 대체한다
+  document.addEventListener('error', e => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || !img.classList.contains('host-photo')) return;
+    const span = document.createElement('span');
+    span.className = 'host-photo initial'; span.textContent = img.dataset.initial || '';
+    img.replaceWith(span);
+  }, true);
   window.addEventListener('scroll', () => document.querySelector('.topbar')?.classList.toggle('is-scrolled', window.scrollY > 4), { passive: true });
 
   document.addEventListener('click', e => {
@@ -200,7 +212,12 @@
     if (navigator.share) { try { await navigator.share({ title: g.name, text: g.tagline, url }); } catch (e) {} }
     else UI.copy(url);
   };
-  actions.allReviews = () => { const g = byId(S.sel.groupId); UI.openSheet(`후기 ${g.stats.review_count}개`, g.reviews.map(r => reviewCard(r, { showGroup: false })).join('')); };
+  actions.allReviews = async () => {
+    const g = byId(S.sel.groupId);
+    let list = g.reviews;
+    try { list = (await UI.api(`/api/public/groups/${g.id}/reviews`)).reviews; } catch (e) { /* 실패하면 받아둔 최근 후기만 보여준다 */ }
+    UI.openSheet(`후기 ${list.length}개`, list.map(r => reviewCard(r, { showGroup: false })).join(''));
+  };
   actions.policy = el => UI.openSheet(el.dataset.tab === 'terms' ? '이용약관' : '개인정보 수집·이용 동의', policyBody(el.dataset.tab));
 
   function trustLine(st) {
@@ -277,7 +294,7 @@
     h += readSection('포함 사항', includes.length ? `<ul class="checks">${includes.map(x => `<li>${UI.icon('check')}<span>${esc(x)}</span></li>`).join('')}</ul>` : '');
     h += readSection('진행 순서', order.length ? `<ol class="timeline">${order.map(TT.parseStep).map((s, i) => `<li><span class="t num">${esc(s.time || String(i + 1))}</span><span>${esc(s.text)}</span></li>`).join('')}</ol>` : '');
     h += readSection('준비물', bulletList(prep));
-    if (g.host_name) h += readSection('호스트', `<div class="host">${g.host_photo_url ? `<img src="${esc(g.host_photo_url)}" alt="" class="host-photo">` : `<span class="host-photo initial">${esc(hostInitial)}</span>`}<div><span class="host-label">호스트</span><b>${esc(g.host_name)}</b><span>${esc(g.host_role)}</span></div></div>${g.host_bio ? `<p>${esc(g.host_bio)}</p>` : ''}`);
+    if (g.host_name) h += readSection('호스트', `<div class="host">${g.host_photo_url ? `<img src="${esc(g.host_photo_url)}" alt="" class="host-photo" data-initial="${esc(hostInitial)}">` : `<span class="host-photo initial">${esc(hostInitial)}</span>`}<div><span class="host-label">호스트</span><b>${esc(g.host_name)}</b><span>${esc(g.host_role)}</span></div></div>${g.host_bio ? `<p>${esc(g.host_bio)}</p>` : ''}`);
     h += readSection('오시는 길', `<p class="place"><b>대구 중구 ${esc(g.place)}</b>${g.place_note ? `<br>${esc(g.place_note)}` : ''}</p><p class="muted">정확한 위치는 참여 확정 후 안내해요.</p><a class="btn btn-line" href="https://map.kakao.com/?q=${encodeURIComponent('대구 ' + g.place)}" target="_blank" rel="noopener">${UI.icon('external', 'icon icon-sm')}카카오맵에서 보기</a>`);
     h += readSection('환불 규정', `${bulletList(refund)}<p class="muted refund-note">승인 전 취소는 언제나 전액 환불돼요. 날짜 기준은 자정이에요.</p>`);
     h += readSection('자주 묻는 질문', faq.length ? faqList(faq) : '');
@@ -290,7 +307,7 @@
 
   /* ---------- 신청 정보 입력 ---------- */
 
-  const JOBS = ['대학생', '직장인', '프리랜서', '기타'];
+  const JOBS = TT.JOBS;
   const MBTI = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
 
   function renderApply(g, query) {
@@ -304,7 +321,7 @@
     return `<div data-title="신청하기 — ${esc(g.name)}"></div>` + topbar({ back: true, title: '신청하기' }) + `
       <section class="pad apply-sum">${UI.cover(g.cover_url, g, 'apply-thumb')}<div><b>${esc(g.name)}</b><span>${TT.fmtDateShort(s.date)} ${TT.timeRange(s.start_time, s.end_time)} · ${esc(s.place)}</span></div><a class="text-link" href="#/g/${g.id}">변경</a></section>
       <form class="pad form" data-apply-form novalidate>
-        <div class="field"><label for="f-name">이름</label><input id="f-name" class="input" data-bind="name" value="${esc(f.name)}" autocomplete="name" ${inv('name')}>${err('name')}</div>
+        <div class="field"><label for="f-name">이름</label><input id="f-name" class="input" data-bind="name" value="${esc(f.name)}" maxlength="${TT.NAME_MAX}" autocomplete="name" ${inv('name')}>${err('name')}</div>
         <div class="field"><label for="f-age">나이 (만)</label><input id="f-age" class="input num" data-bind="age" value="${esc(f.age)}" inputmode="numeric" maxlength="2" ${inv('age')}>${e.age ? err('age') : '<p class="hint">만 19~35세만 신청할 수 있어요</p>'}</div>
         <div class="field"><span class="label" id="l-job">직업</span><div class="choice-row" role="radiogroup" aria-labelledby="l-job">${JOBS.map(j => `<button type="button" class="choice${f.job === j ? ' is-on' : ''}" role="radio" aria-checked="${f.job === j}" data-action="choose" data-key="job" data-val="${j}">${j}</button>`).join('')}</div>${err('job')}</div>
         <details class="field mbti"${mbti !== '모름' ? ' open' : ''}><summary><span class="label">MBTI <em>선택</em></span><span class="val">${esc(mbti)} ${UI.icon('plus', 'icon icon-sm')}</span></summary><div class="mbti-grid">${[...MBTI, '모름'].map(m => `<button type="button" class="choice${mbti === m ? ' is-on' : ''}" data-action="choose" data-key="mbti" data-val="${m}">${m}</button>`).join('')}</div></details>
@@ -322,7 +339,11 @@
   document.addEventListener('input', e => {
     const t = e.target; if (!t.matches('[data-bind]')) return;
     const k = t.dataset.bind; let v = t.value;
-    if (k === 'phone') { v = TT.formatPhone(v); t.value = v; }
+    if (k === 'phone') {
+      const digitsBefore = v.slice(0, t.selectionStart).replace(/\D/g, '').length;
+      v = TT.formatPhone(v); t.value = v;
+      const pos = TT.caretAfterDigits(v, digitsBefore); t.setSelectionRange(pos, pos);
+    }
     if (k === 'age') { v = v.replace(/\D/g, '').slice(0, 2); t.value = v; }
     S.form[k] = v;
     if (k === 'motivation') { const c = document.querySelector('[data-counter]'); if (c) c.textContent = v.trim().length; }
@@ -333,7 +354,7 @@
   });
   actions.submit = async () => {
     S.errors = TT.validateApply(S.form);
-    if (Object.keys(S.errors).length) { render(); document.querySelector('[aria-invalid="true"]')?.focus(); return; }
+    if (Object.keys(S.errors).length) { render(); focusFirstError(); return; }
     const g = byId(S.sel.groupId), s = g.schedules.find(x => x.id === S.sel.scheduleId);
     S.submitting = true; render();
     try {
@@ -348,9 +369,18 @@
       S.submitting = false;
       go('#/done');
     } catch (err) {
-      S.submitting = false; render(); UI.toast(err.message);
+      S.submitting = false;
+      // 마감·일정 변경으로 거절됐을 수 있으니 좌석 수를 다시 받아온다. 마감된 회차면 renderApply 가 상세로 돌려보낸다
+      if (err.status === 400) { try { const j = await UI.api('/api/public/groups'); S.groups = j.groups || []; S.reviews = j.reviews || []; } catch (e) {} }
+      render(); UI.toast(err.message);
     }
   };
+  // 화면 순서대로 첫 오류 항목에 포커스한다. 직업은 입력칸이 없어 선택 버튼으로 보낸다
+  const ERROR_ORDER = [['name', '#f-name'], ['age', '#f-age'], ['job', '[data-key="job"]'], ['phone', '#f-phone'], ['motivation', '#f-mot'], ['agreeRequired', '[data-agree="agreeRequired"]']];
+  function focusFirstError() {
+    const hit = ERROR_ORDER.find(([k]) => S.errors[k]);
+    if (hit) document.querySelector(hit[1])?.focus();
+  }
 
   /* ---------- 신청 완료 ---------- */
 

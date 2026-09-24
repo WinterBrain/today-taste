@@ -48,3 +48,30 @@ test('admin can hide a review; operator cannot', async () => {
   assert.ok(db.prepare("SELECT 1 FROM audit_logs WHERE action='hide_review' AND entity_id=?").get(String(id)));
   db.close();
 });
+
+test('schedule create/update rejects malformed date and time', async () => {
+  const good = { group_id: 1, date: '2026-12-01', start_time: '14:00', end_time: '16:00', place: '동성로', capacity: 3, fee: 39000 };
+  let r = await api(s.base, '/api/admin/schedules', { method: 'POST', token: op, body: { ...good, date: '"><img src=x onerror=alert(1)>' } });
+  assert.equal(r.status, 400);
+  r = await api(s.base, '/api/admin/schedules', { method: 'POST', token: op, body: { ...good, start_time: '2pm' } });
+  assert.equal(r.status, 400);
+  r = await api(s.base, '/api/admin/schedules', { method: 'POST', token: op, body: { ...good, capacity: 0 } });
+  assert.equal(r.status, 400);
+  r = await api(s.base, '/api/admin/schedules', { method: 'POST', token: op, body: good });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  const id = r.body.id;
+  r = await api(s.base, `/api/admin/schedules/${id}`, { method: 'PATCH', token: op, body: { end_time: '<script>' } });
+  assert.equal(r.status, 400);
+  r = await api(s.base, `/api/admin/schedules/${id}`, { method: 'PATCH', token: op, body: { end_time: '17:00' } });
+  assert.equal(r.status, 200);
+});
+
+test('attendance closes the participation link', async () => {
+  const db = s.open();
+  const a = db.prepare("SELECT id FROM applications WHERE status='확정' AND group_id IN (1,3) LIMIT 1").get();
+  db.prepare("UPDATE applications SET participation_token='attend-token-1' WHERE id=?").run(a.id);
+  db.close();
+  const r = await api(s.base, `/api/admin/applications/${a.id}/attendance`, { method: 'POST', token: op, body: { attended: true } });
+  assert.equal(r.status, 200);
+  assert.equal((await api(s.base, '/api/public/participation/attend-token-1')).status, 404);
+});

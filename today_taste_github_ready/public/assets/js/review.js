@@ -10,7 +10,6 @@
   const stars = (k, label, big) => `<div class="stars${big ? ' is-big' : ''}" role="radiogroup" aria-label="${label}" data-stars="${k}">${[1, 2, 3, 4, 5].map(n => `<button type="button" role="radio" aria-checked="${score[k] === n}" aria-label="${n}점" data-k="${k}" data-n="${n}" class="${score[k] >= n ? 'is-on' : ''}">${UI.icon('star')}</button>`).join('')}</div>`;
 
   function render(d) {
-    const initial = [...String(d.name || '')][0] || '';
     box.innerHTML = `<section class="link-body">
       <div class="link-head">${UI.cover(d.cover_url, { name: d.group_name, tag: [...String(d.group_name || '')][0] || '', field: '' }, 'link-thumb', { eager: true })}<div><b>${esc(d.group_name)}</b><span>${TT.fmtDateShort(d.date)} 참여</span></div></div>
       <h1 class="serif">${esc(d.name)}님, 모임은 어떠셨어요?</h1>
@@ -18,7 +17,7 @@
       <div class="rate-main"><span>${ITEMS[0][1]}</span>${stars(ITEMS[0][0], ITEMS[0][1], true)}</div>
       <div class="rate-list">${ITEMS.slice(1).map(([k, l]) => `<div class="rate-row"><span>${l}</span>${stars(k, l)}</div>`).join('')}</div>
       <div class="field"><label for="r-text">한 줄 후기</label><textarea id="r-text" class="input" rows="4" maxlength="1000" placeholder="좋았던 점이나 아쉬웠던 점을 자유롭게 적어주세요."></textarea></div>
-      <label class="agree"><input type="checkbox" id="r-pub"><span><em>선택</em> 후기를 서비스 소개에 공개해도 좋아요 (이름은 ${esc(initial)}** 으로 가려져요)</span></label>
+      <label class="agree"><input type="checkbox" id="r-pub"><span><em>선택</em> 후기를 서비스 소개에 공개해도 좋아요 (이름은 ${esc(TT.maskName(d.name))} 으로 가려져요)</span></label>
       <details class="report"><summary>불편한 일이 있었나요?</summary><label class="agree"><input type="checkbox" id="r-report"><span>운영팀에 따로 알리고 싶어요</span></label><textarea id="r-report-text" class="input" rows="3" maxlength="1000" placeholder="운영팀만 볼 수 있어요."></textarea></details>
       <div class="bottom-bar"><button class="btn btn-primary btn-block" data-submit>후기 보내기</button></div>
     </section>`;

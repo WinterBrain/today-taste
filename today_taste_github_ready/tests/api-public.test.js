@@ -81,3 +81,20 @@ test('rejects invalid applications', async () => {
   r = await api(s.base, '/api/public/applications', { method: 'POST', body: validBody(full, '010-9999-0005') });
   assert.equal(r.status, 400); assert.match(r.body.error, /마감/);
 });
+
+test('rejects jobs outside the list and overlong names', async () => {
+  const g = (await api(s.base, '/api/public/groups')).body.groups.find(x => x.tag === '향수');
+  const sid = g.schedules.find(x => x.remaining > 0).id;
+  let r = await api(s.base, '/api/public/applications', { method: 'POST', body: { ...validBody(sid, '010-9999-0007'), job: '<b>해커</b>' } });
+  assert.equal(r.status, 400); assert.match(r.body.error, /직업/);
+  r = await api(s.base, '/api/public/applications', { method: 'POST', body: { ...validBody(sid, '010-9999-0008'), name: '가'.repeat(21) } });
+  assert.equal(r.status, 400); assert.match(r.body.error, /20자/);
+});
+
+test('group review endpoint returns every public review, masked', async () => {
+  const coffee = (await api(s.base, '/api/public/groups')).body.groups.find(g => g.tag === '커피');
+  const r = await api(s.base, `/api/public/groups/${coffee.id}/reviews`);
+  assert.equal(r.status, 200);
+  assert.equal(r.body.reviews.length, coffee.stats.review_count);
+  assert.ok(r.body.reviews.every(x => /^.\*+$/.test(x.name_masked) && !('name' in x)));
+});

@@ -51,9 +51,11 @@
   function parseHash(hash) {
     const h = String(hash || '').replace(/^#/, '');
     const [p, q = ''] = h.split('?');
-    const parts = p.split('/').filter(Boolean).map(decodeURIComponent);
+    // 잘못된 인코딩(%E0 등)은 예외 대신 원문 그대로 둔다
+    const dec = x => { try { return decodeURIComponent(x); } catch (e) { return x; } };
+    const parts = p.split('/').filter(Boolean).map(dec);
     const query = {};
-    q.split('&').filter(Boolean).forEach(kv => { const [k, v = ''] = kv.split('='); query[decodeURIComponent(k)] = decodeURIComponent(v); });
+    q.split('&').filter(Boolean).forEach(kv => { const [k, v = ''] = kv.split('='); query[dec(k)] = dec(v); });
     return { parts, query };
   }
 
@@ -63,13 +65,26 @@
     if (v.length > 3) return `${v.slice(0, 3)}-${v.slice(3)}`;
     return v;
   }
+  // 하이픈을 다시 넣은 뒤의 커서 위치: 커서 앞에 있던 숫자 개수만큼 지난 자리
+  function caretAfterDigits(formatted, digits) {
+    if (digits <= 0) return 0;
+    let n = 0;
+    for (let i = 0; i < formatted.length; i++) if (/\d/.test(formatted[i]) && ++n === digits) return i + 1;
+    return formatted.length;
+  }
 
+  // 공개 후기·평가 페이지의 이름 가림. 서버(server.js)도 이 함수를 쓴다. '김하나' → '김**', '김하' → '김*'
+  const maskName = n => { const c = [...String(n || '').trim()]; return c.length ? c[0] + '*'.repeat(Math.max(1, c.length - 1)) : '익명'; };
+
+  const JOBS = ['대학생', '직장인', '프리랜서', '기타'];
+  const NAME_MAX = 20;
   // 서버(/api/public/applications)와 같은 규칙. 키가 없으면 통과.
   function validateApply(f) {
-    const e = {}; const age = Number(f.age); const mot = String(f.motivation || '').trim();
-    if (!String(f.name || '').trim()) e.name = '이름을 입력해 주세요.';
+    const e = {}; const age = Number(f.age); const mot = String(f.motivation || '').trim(); const name = String(f.name || '').trim();
+    if (!name) e.name = '이름을 입력해 주세요.';
+    else if ([...name].length > NAME_MAX) e.name = `이름은 ${NAME_MAX}자 이내로 입력해 주세요.`;
     if (!Number.isInteger(age) || age < 19 || age > 35) e.age = '만 19~35세만 신청할 수 있어요.';
-    if (!f.job) e.job = '직업을 선택해 주세요.';
+    if (!JOBS.includes(f.job)) e.job = '직업을 선택해 주세요.';
     if (!/^010-\d{4}-\d{4}$/.test(f.phone || '')) e.phone = '010-0000-0000 형식으로 입력해 주세요.';
     if (mot.length < 10) e.motivation = '신청 이유를 10자 이상 적어주세요.';
     else if (mot.length > 300) e.motivation = '300자 이내로 줄여주세요.';
@@ -106,6 +121,6 @@
     return { expired: false, text: `${pad(Math.floor(t / 3600))}:${pad(Math.floor((t % 3600) / 60))}:${pad(t % 60)}` };
   }
 
-  const TT = { esc, won, parseDate, parseSqlDateTime, dowKo, fmtDateShort, fmtDateLong, todayStr, daysBetween, timeLabel, timeRange, dayBucket, band, cellKey, seatInfo, parseStep, listOf, pairsOf, parseHash, formatPhone, validateApply, openSchedules, nextSchedule, matchesFilter, countdown, deadlineFromSeconds, clockLabel };
+  const TT = { esc, won, parseDate, parseSqlDateTime, dowKo, fmtDateShort, fmtDateLong, todayStr, daysBetween, timeLabel, timeRange, dayBucket, band, cellKey, seatInfo, parseStep, listOf, pairsOf, parseHash, formatPhone, caretAfterDigits, maskName, JOBS, NAME_MAX, validateApply, openSchedules, nextSchedule, matchesFilter, countdown, deadlineFromSeconds, clockLabel };
   if (typeof module !== 'undefined' && module.exports) module.exports = TT; else root.TT = TT;
 })(typeof window !== 'undefined' ? window : globalThis);

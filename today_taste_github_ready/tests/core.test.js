@@ -1,5 +1,6 @@
 'use strict';
-process.env.TZ = 'Asia/Seoul';
+// TT_TEST_TZ 로 다른 시간대(core-tz.test.js 가 음수 시간대로 다시 실행)에서도 검증한다
+process.env.TZ = process.env.TT_TEST_TZ || 'Asia/Seoul';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const TT = require('../public/assets/js/core.js');
@@ -94,4 +95,31 @@ test('countdown', () => {
   const d = TT.parseSqlDateTime('2026-09-24 19:00:00');
   assert.deepEqual(TT.countdown(d, d.getTime() - (9 * 3600 + 59 * 60 + 12) * 1000), { expired: false, text: '09:59:12' });
   assert.equal(TT.countdown(d, d.getTime() + 1000).expired, true);
+});
+
+test('broken hash encoding does not throw', () => {
+  assert.deepEqual(TT.parseHash('#/g/%E0'), { parts: ['g', '%E0'], query: {} });
+  assert.deepEqual(TT.parseHash('#/g/1/apply?s=%E0%A4'), { parts: ['g', '1', 'apply'], query: { s: '%E0%A4' } });
+});
+
+test('name masking matches the server rule', () => {
+  assert.equal(TT.maskName('김하나'), '김**');
+  assert.equal(TT.maskName('김하'), '김*');
+  assert.equal(TT.maskName(' '), '익명');
+});
+
+test('job allow-list and name length', () => {
+  const ok = { name: '김하나', age: '27', job: '직장인', phone: '010-1234-5678', motivation: '커피 취향을 찾고 싶어요!', agreeRequired: true };
+  assert.ok(TT.validateApply({ ...ok, job: '해커' }).job);
+  assert.ok(TT.validateApply({ ...ok, name: '가'.repeat(21) }).name);
+  assert.deepEqual(TT.validateApply({ ...ok, name: '가'.repeat(20) }), {});
+});
+
+test('phone caret stays after the same digit', () => {
+  assert.equal(TT.caretAfterDigits('010-1234-5678', 3), 3);
+  assert.equal(TT.caretAfterDigits('010-1234-5678', 4), 5);
+  assert.equal(TT.caretAfterDigits('010-1234-5678', 7), 8);
+  assert.equal(TT.caretAfterDigits('010-1234-5678', 8), 10);
+  assert.equal(TT.caretAfterDigits('010-1234-5678', 11), 13);
+  assert.equal(TT.caretAfterDigits('010', 0), 0);
 });
