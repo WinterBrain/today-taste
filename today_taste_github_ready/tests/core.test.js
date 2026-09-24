@@ -78,6 +78,14 @@ test('filters', () => {
   assert.equal(TT.nextSchedule(g('x', [full, wedNight, sat])).date, '2026-09-26');
 });
 
+test('deadline from server seconds uses the client clock', () => {
+  const now = new Date(2026, 8, 24, 10, 28, 30).getTime();
+  const d = TT.deadlineFromSeconds(36000, now);
+  assert.equal(d.getTime(), now + 36000 * 1000);
+  assert.equal(TT.clockLabel(d), '9.24(목) 오후 8:28');
+  assert.equal(TT.deadlineFromSeconds(null, now), null);
+});
+
 test('countdown', () => {
   const d = TT.parseSqlDateTime('2026-09-24 19:00:00');
   assert.deepEqual(TT.countdown(d, d.getTime() - (9 * 3600 + 59 * 60 + 12) * 1000), { expired: false, text: '09:59:12' });

@@ -28,6 +28,16 @@ test('participation link shows payment info and stays viewable after accept', as
   assert.equal(r.status, 400, 'second accept must be rejected');
 });
 
+test('payment countdown is computed server-side so client clock/timezone does not matter', async () => {
+  const db = s.open();
+  db.prepare("UPDATE applications SET status='승인',participation_token='tz-token-1',payment_deadline=NULL WHERE name='송가은'").run();
+  db.close();
+  let r = await api(s.base, '/api/public/participation/tz-token-1', { method: 'POST', body: { accept: true } });
+  assert.ok(r.body.paymentSecondsLeft > 35990 && r.body.paymentSecondsLeft <= 36000, 'POST seconds ' + r.body.paymentSecondsLeft);
+  r = await api(s.base, '/api/public/participation/tz-token-1');
+  assert.ok(r.body.payment_seconds_left > 35900 && r.body.payment_seconds_left <= 36000, 'GET seconds ' + r.body.payment_seconds_left);
+});
+
 test('declining clears the token', async () => {
   const db = s.open();
   db.prepare("UPDATE applications SET status='승인',participation_token='decline-token-1' WHERE name='박서린'").run();

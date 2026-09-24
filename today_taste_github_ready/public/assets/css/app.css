@@ -285,3 +285,29 @@ textarea.input { resize: vertical; line-height: 1.6; }
 .guide .steps { margin-bottom: 8px; }
 .policy h3 { font-size: var(--fs-15); margin: 20px 0 6px; } .policy h3:first-child { margin-top: 0; }
 .policy p { font-size: var(--fs-14); }
+
+/* ---------- 참여 확인·평가 링크 페이지 ---------- */
+.link-page { padding-bottom: 160px; }
+.link-body { padding-top: 12px; display: grid; gap: 14px; }
+.link-body h1 { margin: 8px 0 0; font-size: var(--fs-24); line-height: 1.35; }
+.link-body > .muted { margin: 0; }
+.link-head { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: var(--r-btn); background: var(--bg-sunken); }
+.link-thumb { width: 64px; height: 64px; aspect-ratio: 1; border-radius: 6px; object-fit: cover; flex: none; }
+.link-thumb.cover-fallback .serif { font-size: var(--fs-24); } .link-thumb.cover-fallback small { display: none; }
+.link-head > div { display: grid; min-width: 0; } .link-head b { font-size: var(--fs-15); } .link-head span { font-size: var(--fs-13); color: var(--ink-3); }
+.paybox { margin: 0; padding: 16px; border-radius: var(--r-btn); border: 1px solid var(--line); display: grid; gap: 12px; }
+.pay-row { display: grid; grid-template-columns: 72px 1fr; gap: 8px; font-size: var(--fs-14); }
+.pay-row dt { color: var(--ink-3); } .pay-row dd { margin: 0; } .pay-row dd span { font-size: var(--fs-13); color: var(--ink-3); }
+.pay-row b { font-size: var(--fs-17); }
+.paybox .hint { margin: 0; }
+.countdown { color: var(--warn); }
+.bottom-bar.stack { flex-direction: column; gap: 8px; }
+.stars { display: inline-flex; gap: 2px; }
+.stars button { width: 36px; height: 36px; display: grid; place-items: center; color: var(--ink-4); }
+.stars.is-big button { width: 48px; height: 48px; } .stars.is-big .icon { width: 32px; height: 32px; }
+.stars button.is-on { color: var(--accent); } .stars button.is-on .icon { fill: var(--accent); }
+.rate-main { display: grid; justify-items: center; gap: 6px; padding: 12px 0 16px; font-weight: 600; }
+.rate-list { display: grid; gap: 2px; border-top: 1px solid var(--line); padding-top: 12px; }
+.rate-row { display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-14); }
+.report summary { font-size: var(--fs-14); color: var(--ink-3); cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.report .input { margin-top: 6px; }

@@ -110,7 +110,7 @@ app.post('/api/public/applications',(req,res)=>{
   }catch(e){ if(String(e.message).includes('UNIQUE')) return res.status(409).json({error:'이미 이 일정에 같은 번호로 신청했어요. 신청 현황은 카카오톡 채널로 문의해 주세요.'}); throw e; }
 });
 app.get('/api/public/participation/:token',(req,res)=>{
-  const a=db.prepare(`SELECT a.id,a.name,a.status,a.payment_deadline,g.name group_name,g.cover_url,s.date,s.start_time,s.end_time,s.place,s.fee
+  const a=db.prepare(`SELECT a.id,a.name,a.status,a.payment_deadline,CAST(ROUND((julianday(a.payment_deadline)-julianday('now','localtime'))*86400) AS INTEGER) payment_seconds_left,g.name group_name,g.cover_url,s.date,s.start_time,s.end_time,s.place,s.fee
     FROM applications a JOIN groups g ON g.id=a.group_id JOIN schedules s ON s.id=a.schedule_id WHERE a.participation_token=?`).get(req.params.token);
   if(!a) return res.status(404).json({error:'유효하지 않은 링크입니다.'}); res.json({...a,payment:paymentInfo()});
 });
@@ -120,7 +120,7 @@ app.post('/api/public/participation/:token',(req,res)=>{
   if(!a||a.status!=='승인') return res.status(400).json({error:'이미 처리되었거나 유효하지 않은 링크입니다.'});
   if(req.body.accept===false){ db.prepare("UPDATE applications SET status='참여포기',participation_token=NULL WHERE id=?").run(a.id); notify(a.id,'participation_declined'); audit(null,'participation_declined','application',a.id); return res.json({ok:true,status:'참여포기'}); }
   db.prepare("UPDATE applications SET status='입금대기',participation_confirmed_at=datetime('now','localtime'),payment_deadline=datetime('now','localtime','+10 hours') WHERE id=?").run(a.id);
-  notify(a.id,'payment_instruction',{manual:true}); audit(null,'participation_accepted','application',a.id); const n=db.prepare('SELECT payment_deadline FROM applications WHERE id=?').get(a.id); res.json({ok:true,status:'입금대기',paymentDeadline:n.payment_deadline,payment:paymentInfo(),fee:a.fee});
+  notify(a.id,'payment_instruction',{manual:true}); audit(null,'participation_accepted','application',a.id); const n=db.prepare("SELECT a.payment_deadline,CAST(ROUND((julianday(a.payment_deadline)-julianday('now','localtime'))*86400) AS INTEGER) payment_seconds_left FROM applications a WHERE a.id=?").get(a.id); res.json({ok:true,status:'입금대기',paymentDeadline:n.payment_deadline,paymentSecondsLeft:n.payment_seconds_left,payment:paymentInfo(),fee:a.fee});
 });
 app.get('/participation/:token',(req,res)=>res.sendFile(path.join(__dirname,'public','participation.html')));
 

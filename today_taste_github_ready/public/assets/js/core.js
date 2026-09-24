@@ -91,6 +91,10 @@
     return true;
   }
 
+  // 서버가 계산한 남은 초로 마감 시각을 만든다. 서버 시간대 설정과 무관하게 브라우저 시계 기준으로 맞춰진다.
+  const deadlineFromSeconds = (sec, nowMs = Date.now()) => (sec === null || sec === undefined || sec === '') ? null : new Date(nowMs + Number(sec) * 1000);
+  const clockLabel = d => { const x = d; return `${x.getMonth() + 1}.${x.getDate()}(${DOW[x.getDay()]}) ${timeLabel(pad(x.getHours()) + ':' + pad(x.getMinutes()))}`; };
+
   function countdown(deadline, nowMs) {
     const ms = deadline.getTime() - nowMs;
     if (ms <= 0) return { expired: true, text: '00:00:00' };
@@ -98,6 +102,6 @@
     return { expired: false, text: `${pad(Math.floor(t / 3600))}:${pad(Math.floor((t % 3600) / 60))}:${pad(t % 60)}` };
   }
 
-  const TT = { esc, won, parseDate, parseSqlDateTime, dowKo, fmtDateShort, fmtDateLong, todayStr, daysBetween, timeLabel, timeRange, dayBucket, band, cellKey, seatInfo, parseStep, listOf, pairsOf, parseHash, formatPhone, validateApply, openSchedules, nextSchedule, matchesFilter, countdown };
+  const TT = { esc, won, parseDate, parseSqlDateTime, dowKo, fmtDateShort, fmtDateLong, todayStr, daysBetween, timeLabel, timeRange, dayBucket, band, cellKey, seatInfo, parseStep, listOf, pairsOf, parseHash, formatPhone, validateApply, openSchedules, nextSchedule, matchesFilter, countdown, deadlineFromSeconds, clockLabel };
   if (typeof module !== 'undefined' && module.exports) module.exports = TT; else root.TT = TT;
 })(typeof window !== 'undefined' ? window : globalThis);
