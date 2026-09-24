@@ -80,7 +80,7 @@ const seed = db.transaction(() => {
       placeNote:'동성로 무드랩 2층 · 건물 주차 불가 · 중앙로역 3번 출구 도보 4분',
       refund:'',
       faq:[['향을 잘 몰라도 되나요?','처음인 분 기준으로 계열 설명부터 천천히 진행해요.'],['완성품은 가져가나요?','30ml 향수 한 병을 당일 포장해서 가져가요.'],['혼자 신청해도 되나요?','대부분 혼자 오세요. 최대 세 명이라 금방 대화가 시작돼요.']],
-      cover:'/assets/img/groups/perfume-cover.jpg', gallery:['/assets/img/groups/perfume-1.jpg','/assets/img/groups/perfume-2.jpg'] },
+      cover:'/assets/img/groups/perfume-cover.jpg', gallery:['/assets/img/groups/perfume-1.jpg','/assets/img/groups/perfume-2.jpg','/assets/img/groups/perfume-3.jpg','/assets/img/groups/perfume-4.jpg'] },
     { host:['페이지카페 · 오하린','드로잉 클래스 4년'],
       bio:'삼덕동에서 작은 카페를 하며 손님들 모습을 드로잉북에 기록해 왔어요. 그림은 잘 그리는 것보다 오래 보는 게 먼저라고 생각해요. 펜 한 자루만 있으면 어디서든 시작할 수 있다는 걸 알려드리고 싶어요.',
       order:['20분|펜 잡는 법과 선 긋기','30분|컵·화분 같은 작은 사물 스케치','50분|카페 한 구석을 한 장에 담기','10분|서로의 그림 보며 이야기'],
@@ -91,7 +91,7 @@ const seed = db.transaction(() => {
       placeNote:'삼덕동 페이지카페 창가 테이블 · 주차 불가',
       refund:'',
       faq:[['그림을 못 그려도 되나요?','선 긋기부터 시작하는 초보자 과정이에요.'],['개인 도구를 가져가도 되나요?','물론이에요. 쓰던 펜이 있다면 함께 가져오세요.']],
-      cover:'/assets/img/groups/drawing-cover.jpg', gallery:[] },
+      cover:'/assets/img/groups/drawing-cover.jpg', gallery:['/assets/img/groups/drawing-1.jpg','/assets/img/groups/drawing-2.jpg'] },
     { host:['로스터리 소담 · 김현우','바리스타 7년'],
       bio:'교동 골목에서 작은 로스터리를 운영해요. 손님마다 "산미"라는 말을 다르게 쓰는 게 재미있어서 이 모임을 열었어요. 정답 대신 내 입에 맞는 기준을 찾아가는 시간이 되면 좋겠어요.',
       order:['20분|세 가지 원두 향 맡고 맛 비교','30분|분쇄도·물 온도에 따라 달라지는 맛','50분|직접 핸드드립 3회 실습','20분|나만의 레시피 카드 정리'],
@@ -102,7 +102,7 @@ const seed = db.transaction(() => {
       placeNote:'교동 로스터리 소담 1층 · 주차 1대 가능 (신청 이유에 미리 적어주세요) · 대구역 도보 7분',
       refund:'',
       faq:[['디카페인도 가능한가요?','미리 알려주시면 디카페인 원두로 준비해요.'],['도구를 사야 하나요?','모든 도구는 현장에 준비되어 있어요.']],
-      cover:'/assets/img/groups/coffee-cover.jpg', gallery:['/assets/img/groups/coffee-1.jpg','/assets/img/groups/coffee-2.jpg'] },
+      cover:'/assets/img/groups/coffee-cover.jpg', gallery:['/assets/img/groups/coffee-1.jpg','/assets/img/groups/coffee-2.jpg','/assets/img/groups/coffee-3.jpg'] },
     { host:['스튜디오 결 · 서지민','가죽공예 6년'],
       bio:'봉산문화거리에서 가죽 소품을 만들고 있어요. 기계 박음질보다 느리지만 오래가는 손바느질을 좋아해요. 처음 바늘을 잡는 분도 두 시간이면 매일 쓰는 물건 하나를 완성할 수 있어요.',
       order:['15분|가죽과 도구 소개','25분|가죽·실 색 고르고 각인 위치 정하기','80분|새들 스티치로 키링·카드태그 만들기','20분|모서리 마감과 포장'],
@@ -113,7 +113,7 @@ const seed = db.transaction(() => {
       placeNote:'봉산동 스튜디오 결 3층 · 엘리베이터 없음 · 봉산문화거리 안',
       refund:'',
       faq:[['손바느질이 처음인데 괜찮나요?','최대 세 명이라 단계마다 옆에서 도와드려요.'],['각인 글자는 몇 자까지 되나요?','영문 이니셜 3자까지 가능해요.']],
-      cover:'/assets/img/groups/leather-cover.jpg', gallery:['/assets/img/groups/leather-1.jpg','/assets/img/groups/leather-2.jpg'] },
+      cover:'/assets/img/groups/leather-cover.jpg', gallery:['/assets/img/groups/leather-1.jpg','/assets/img/groups/leather-2.jpg','/assets/img/groups/leather-3.jpg'] },
     { host:['필름워크 · 한도윤','필름사진 워크숍 5년'],
       bio:'김광석길 근처에서 필름 현상소를 겸한 작은 작업실을 운영해요. 한 롤에 36장뿐이라 한 장 한 장 오래 고민하게 되는 게 필름의 매력이에요.',
       order:['20분|카메라 조작과 노출 기본','20분|빛과 구도 이야기','90분|김광석길 골목 촬영 산책','20분|카페에서 한 롤 정리하며 이야기'],
@@ -124,10 +124,11 @@ const seed = db.transaction(() => {
       placeNote:'김광석길 입구 집결 · 우천 시 일정 변경',
       refund:'',
       faq:[['카메라가 없어도 되나요?','대여 장비가 준비되어 있어요.']],
-      cover:'', gallery:[] },
+      cover:'/assets/img/groups/film-cover.jpg', gallery:['/assets/img/groups/film-1.jpg','/assets/img/groups/film-2.jpg','/assets/img/groups/film-3.jpg'] },
   ];
-  const updDetail=db.prepare('UPDATE groups SET host_name=?,host_role=?,host_bio=?,order_json=?,prep_json=?,for_whom_json=?,includes_json=?,fee_note=?,place_note=?,refund_policy=?,faq_json=?,cover_url=?,gallery_json=? WHERE id=?');
-  detailDefs.forEach((d,i)=>updDetail.run(d.host[0],d.host[1],d.bio,json(d.order),json(d.prep),json(d.forWhom),json(d.includes),d.feeNote,d.placeNote,d.refund,json(d.faq),d.cover,json(d.gallery),gids[i]));
+  const hostPhotos=['perfume','drawing','coffee','leather','film'];
+  const updDetail=db.prepare('UPDATE groups SET host_name=?,host_role=?,host_photo_url=?,host_bio=?,order_json=?,prep_json=?,for_whom_json=?,includes_json=?,fee_note=?,place_note=?,refund_policy=?,faq_json=?,cover_url=?,gallery_json=? WHERE id=?');
+  detailDefs.forEach((d,i)=>updDetail.run(d.host[0],d.host[1],`/assets/img/hosts/${hostPhotos[i]}.jpg`,d.bio,json(d.order),json(d.prep),json(d.forWhom),json(d.includes),d.feeNote,d.placeNote,d.refund,json(d.faq),d.cover,json(d.gallery),gids[i]));
 
   const assign = db.prepare('INSERT INTO operator_groups(user_id,group_id) VALUES(?,?)');
   assign.run(op1,gids[0]); assign.run(op1,gids[2]);

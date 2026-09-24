@@ -102,7 +102,11 @@
 
 **이미지**
 - AI 이미지 생성 파이프라인 확인: Google Antigravity CLI(`agy`)의 `generate_image` 로 생성 → Claude가 검토·크롭해 반영. 드로잉 모임 커버(`img/groups/drawing-cover.jpg`) 적용, 시드에 경로 연결
-- ⚠️ 이미지 생성 모델(`gemini-3.1-flash-image`) 계정 한도가 있어 한 번에 여러 장 요청하면 429로 막힌다. 오늘은 16:57 KST 이후 재개 가능
+- 드로잉 모임 갤러리 2장(`img/groups/drawing-1.jpg`, `drawing-2.jpg`) 추가, `scripts/seed-demo.js` 에 연결. 이미 있는 DB에는 운영콘솔 모임체 폼의 갤러리 칸에 경로를 넣거나 `npm run seed:demo:reset` 으로 반영
+- 호스트 사진 5장(`img/hosts/{perfume,drawing,coffee,leather,film}.jpg`, 400×400) 추가, 시드의 `host_photo_url` 에 연결. CLI 한도 소진으로 **Gemini 웹(gemini.google.com)을 자동화 크롬으로 조작해 생성**했고, 웹 결과물 오른쪽 아래의 Gemini 워터마크는 크롭으로 제외
+- 홈 배너(`img/brand/home-banner.jpg`, 스톡 → AI 880×550), 이용 안내 헤더(`img/brand/guide.jpg`, 새로 추가되어 `#/guide` 상단에 자동 표시, 870×580), 공유 미리보기(`icons/og.jpg`, AI 배경 + 로고·"오늘의 취향" 워드마크 합성, 1200×630) 교체. 웹 결과물이 1024px 안팎이라 가이드 권장 크기보다 작지만 표시 폭(최대 480px)의 2배 이상
+- 갤러리 보충·필름 모임 이미지 8장: `perfume-3·4`, `coffee-3`, `leather-3`, `film-cover`, `film-1~3` (`img/groups/`, Gemini 웹). 시드의 갤러리·필름 커버에 연결. 향수 모임 사진은 커버 포함 5장이 됨
+- ⚠️ 이미지 생성 모델(`gemini-3.1-flash-image`) 계정 한도가 있어 한 번에 여러 장 요청하면 429로 막힌다. 드로잉 갤러리 2장 생성 후 18:36 KST에 다시 소진, 약 23:25 KST 이후 재개 가능
 
 **개발 환경**
 - 에이전트 지침 공유: `.agents/AGENTS.md`, `CLAUDE.md` 가 git으로 추적된다(`.gitignore` 에서 제외 해제). 협업자의 에이전트도 같은 규칙(이 문서 자동 갱신 포함)을 따른다
@@ -135,17 +139,9 @@
 
 ### P1 — 이미지 생성 (AI) · 가이드: [03-image-guide.md](design/03-image-guide.md)
 
-생성 방법: Claude에게 "agy로 이미지 만들어줘"라고 요청하면 Antigravity CLI로 생성 → 검토 → 적용까지 진행합니다(스킬 `agy-collaborator`). 이미지 모델 한도 때문에 **한 번에 2~3장씩, 순서대로** 요청합니다. 사진이 없는 자리는 지금 모임명 글자나 이니셜로 대체돼 있습니다. 만든 파일을 `public/assets/img/` 에 넣고 운영콘솔 모임체 폼의 사진 주소 칸에 경로를 입력하면 바로 반영됩니다. 넣은 뒤에는 [image-credits.md](design/image-credits.md) 에 기록합니다.
+생성 방법: Claude에게 "agy로 이미지 만들어줘"라고 요청하면 Antigravity CLI로 생성 → 검토 → 적용까지 진행합니다(스킬 `agy-collaborator`). 이미지 모델 한도 때문에 **한 번에 2~3장씩, 순서대로** 요청합니다. CLI 한도가 소진되면 Claude가 자동화 크롬(superpowers-chrome, 별도 프로필에 Google 로그인 필요)으로 Gemini 웹에서 생성할 수 있습니다(워터마크는 크롭으로 제외). 사진이 없는 자리는 지금 모임명 글자나 이니셜로 대체돼 있습니다. 만든 파일을 `public/assets/img/` 에 넣고 운영콘솔 모임체 폼의 사진 주소 칸에 경로를 입력하면 바로 반영됩니다. 넣은 뒤에는 [image-credits.md](design/image-credits.md) 에 기록합니다.
 
-| 우선 | 슬롯 | 파일 경로(권장) | 프롬프트 |
-|---|---|---|---|
-| 1 | 드로잉 모임 갤러리 2장 (커버는 2026-09-24 적용 완료) | `img/groups/drawing-1.jpg`, `drawing-2.jpg` | 가이드 §4.5 |
-| 2 | 호스트 사진 5장 (얼굴 없이 손·작업 공간) | `img/hosts/perfume.jpg` 등 5개 | 가이드 §4.8 |
-| 3 | 홈 배너 교체 (지금은 크롭한 스톡 사진) | `img/brand/home-banner.jpg` (덮어쓰기) | 가이드 §4.1 |
-| 4 | 이용 안내 헤더 (없으면 자동으로 숨김) | `img/brand/guide.jpg` | 가이드 §4.2 |
-| 5 | 공유 미리보기 OG (지금은 커피 사진 크롭) | `icons/og.jpg` (덮어쓰기) | 가이드 §4.3 |
-| 6 | 향수·커피·가죽 갤러리 보충 (선택) | 기존 갤러리에 추가 | 가이드 §4.4, §4.6 |
-| 7 | 필름 모임 커버 + 갤러리 (현재 비공개 모임이라 나중에) | `img/groups/film-*.jpg` | 가이드 §4.7 |
+- 가이드의 이미지 슬롯은 모두 채웠습니다. 운영 전에 호스트 사진 5장(`img/hosts/*.jpg`, AI 생성)을 실제 호스트 사진으로 바꿉니다(운영콘솔 모임체 폼의 호스트 사진 칸).
 
 ### P2 — 기능 개선 (운영하며 필요)
 
