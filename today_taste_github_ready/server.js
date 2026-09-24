@@ -26,16 +26,8 @@ fs.mkdirSync(path.dirname(DB_PATH), {recursive:true});
 const db = new Database(DB_PATH);
 db.pragma('foreign_keys = ON');
 db.pragma('journal_mode = WAL');
-db.exec(fs.readFileSync(path.join(__dirname,'schema.sql'),'utf8'));
-// Lightweight migrations for projects created before the richer applicant detail screen was added.
-for (const [name,def] of [
-  ['host_name',"TEXT NOT NULL DEFAULT ''"],['host_role',"TEXT NOT NULL DEFAULT ''"],
-  ['order_json',"TEXT NOT NULL DEFAULT '[]'"],['prep_json',"TEXT NOT NULL DEFAULT '[]'"],
-  ['refund_policy',"TEXT NOT NULL DEFAULT ''"],['faq_json',"TEXT NOT NULL DEFAULT '[]'"]
-]) {
-  const cols=db.prepare('PRAGMA table_info(groups)').all().map(x=>x.name);
-  if(!cols.includes(name)) db.exec(`ALTER TABLE groups ADD COLUMN ${name} ${def}`);
-}
+// schema.sql 실행 + 기존 DB에 없는 컬럼 추가 (컬럼 목록은 lib/migrate.js 한 곳에서 관리)
+require('./lib/migrate').migrate(db);
 
 
 const app = express();

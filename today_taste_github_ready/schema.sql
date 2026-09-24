@@ -32,6 +32,14 @@ CREATE TABLE IF NOT EXISTS groups (
   prep_json TEXT NOT NULL DEFAULT '[]',
   refund_policy TEXT NOT NULL DEFAULT '',
   faq_json TEXT NOT NULL DEFAULT '[]',
+  cover_url TEXT NOT NULL DEFAULT '',
+  gallery_json TEXT NOT NULL DEFAULT '[]',
+  for_whom_json TEXT NOT NULL DEFAULT '[]',
+  includes_json TEXT NOT NULL DEFAULT '[]',
+  fee_note TEXT NOT NULL DEFAULT '',
+  host_bio TEXT NOT NULL DEFAULT '',
+  host_photo_url TEXT NOT NULL DEFAULT '',
+  place_note TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
 
@@ -67,6 +75,7 @@ CREATE TABLE IF NOT EXISTS applications (
   ad_source TEXT NOT NULL DEFAULT '직접/기타',
   preferred_times TEXT NOT NULL DEFAULT '[]',
   selection_method TEXT NOT NULL DEFAULT '직접',
+  motivation TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT '접수',
   applied_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
   approved_at TEXT,
@@ -104,6 +113,8 @@ CREATE TABLE IF NOT EXISTS reviews (
   text TEXT NOT NULL DEFAULT '',
   report INTEGER NOT NULL DEFAULT 0,
   report_text TEXT NOT NULL DEFAULT '',
+  publish_ok INTEGER NOT NULL DEFAULT 0,
+  hidden INTEGER NOT NULL DEFAULT 0,
   submitted_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
 

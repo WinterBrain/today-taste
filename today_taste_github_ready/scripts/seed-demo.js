@@ -11,11 +11,7 @@ const dbPath = path.resolve(__dirname, '..', process.env.DB_PATH || 'data/today_
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 const db = new Database(dbPath);
 db.pragma('foreign_keys = ON');
-db.exec(fs.readFileSync(path.join(__dirname, '..', 'schema.sql'), 'utf8'));
-for (const [name,def] of [['host_name',"TEXT NOT NULL DEFAULT ''"],['host_role',"TEXT NOT NULL DEFAULT ''"],['order_json',"TEXT NOT NULL DEFAULT '[]'"],['prep_json',"TEXT NOT NULL DEFAULT '[]'"],['refund_policy',"TEXT NOT NULL DEFAULT ''"],['faq_json',"TEXT NOT NULL DEFAULT '[]'"]]) {
-  const cols=db.prepare('PRAGMA table_info(groups)').all().map(x=>x.name);
-  if(!cols.includes(name)) db.exec(`ALTER TABLE groups ADD COLUMN ${name} ${def}`);
-}
+require('../lib/migrate').migrate(db);
 
 
 const reset = process.argv.includes('--reset');
