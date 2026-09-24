@@ -79,7 +79,7 @@
   function topbar({ back = false, title = '', right = '' } = {}) {
     const left = back
       ? `<button class="icon-btn" data-action="back" aria-label="뒤로">${UI.icon('back')}</button>${title ? `<h1 class="topbar-title">${esc(title)}</h1>` : ''}`
-      : `<a class="wordmark" href="#/" aria-label="오늘의 취향 홈">오늘의 취향<span class="dots"><i></i><i></i><i></i></span></a><span class="region">${esc(SITE.region)}</span>`;
+      : `<a class="wordmark" href="#/" aria-label="오늘의 취향 홈"><svg class="mark" viewBox="12 2 40 56" aria-hidden="true"><path d="M32 29.3C39.6 29.3 44.8 34.9 44.8 41.8C44.8 47.6 41.6 52.2 39 54.4H25C22.4 52.2 19.2 47.6 19.2 41.8C19.2 34.9 24.4 29.3 32 29.3Z" fill="var(--accent)" stroke="currentColor" stroke-width="6.2" stroke-linejoin="round"/><path d="M29.2 6.2L34.8 9.9M16 19.6H48" stroke="currentColor" stroke-width="6.2" stroke-linecap="round"/></svg>오늘의 취향</a><span class="region">${esc(SITE.region)}</span>`;
     return `<header class="topbar">${left}<span class="spacer"></span>${right}</header>`;
   }
   const sectionHead = (title, sub, more) => `<div class="section-head"><div><h2>${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div>${more ? `<a class="more" href="${more}">전체 보기${UI.icon('forward', 'icon icon-sm')}</a>` : ''}</div>`;
