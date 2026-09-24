@@ -42,6 +42,9 @@ const parseJson = (v,f=[]) => { try { return JSON.parse(v||''); } catch(e) { ret
 const safeUser = r => r ? {id:r.id,name:r.name,username:r.username,role:r.role,active:!!r.active,mustChangePassword:!!r.must_change_password,lastLogin:r.last_login} : null;
 const audit = (userId, action, entityType, entityId, detail={}) => db.prepare('INSERT INTO audit_logs(user_id,action,entity_type,entity_id,detail) VALUES(?,?,?,?,?)').run(userId||null,action,entityType,String(entityId??''),JSON.stringify(detail));
 const notify = (applicationId,type,payload={}) => db.prepare('INSERT INTO notifications(application_id,type,payload,status) VALUES(?,?,?,?)').run(applicationId,type,JSON.stringify(payload),'queued');
+const maskName = n => { const c=[...String(n||'').trim()]; return c.length?c[0]+'*'.repeat(Math.max(1,c.length-1)):'익명'; };
+const PUBLIC_REVIEW_WHERE = "r.publish_ok=1 AND r.hidden=0 AND trim(r.text)<>''";
+const publicReviews = (extraWhere,params,limit) => db.prepare(`SELECT r.id,r.satisfaction rating,r.progress,r.place,r.value,r.text,r.submitted_at,a.name,a.group_id,g.name group_name,s.date FROM reviews r JOIN applications a ON a.id=r.application_id JOIN groups g ON g.id=a.group_id JOIN schedules s ON s.id=a.schedule_id WHERE ${PUBLIC_REVIEW_WHERE} AND g.exposed=1 AND g.status='운영' ${extraWhere} ORDER BY r.submitted_at DESC,r.id DESC LIMIT ${Number(limit)}`).all(...params).map(({name,...r})=>({...r,name_masked:maskName(name)}));
 
 function auth(req,res,next){
   const h=req.headers.authorization||''; const t=h.startsWith('Bearer ')?h.slice(7):null;
@@ -85,19 +88,25 @@ app.post('/api/auth/change-password',auth,async(req,res)=>{
 app.get('/api/public/groups',(req,res)=>{
   const groups=db.prepare("SELECT * FROM groups WHERE exposed=1 AND status='운영' ORDER BY id DESC").all();
   const sched=db.prepare("SELECT s.*, (SELECT COUNT(*) FROM applications a WHERE a.schedule_id=s.id AND a.status IN ('확정','참석완료','평가완료')) confirmed FROM schedules s WHERE s.cancelled=0 AND date(s.date)>=date('now','localtime') ORDER BY s.date,s.start_time").all();
-  const map=new Map(groups.map(g=>[g.id,{...g,exposed:!!g.exposed,schedules:[]} ]));
+  const statRow=db.prepare(`SELECT (SELECT COUNT(*) FROM schedules s WHERE s.group_id=@id AND s.occurred=1 AND s.cancelled=0) sessions_done,(SELECT COUNT(*) FROM applications a WHERE a.group_id=@id AND a.status IN ('참석완료','평가완료')) participants,(SELECT ROUND(AVG(r.satisfaction),1) FROM reviews r JOIN applications a ON a.id=r.application_id WHERE a.group_id=@id AND ${PUBLIC_REVIEW_WHERE}) rating_avg,(SELECT COUNT(*) FROM reviews r JOIN applications a ON a.id=r.application_id WHERE a.group_id=@id AND ${PUBLIC_REVIEW_WHERE}) review_count`);
+  const map=new Map(groups.map(g=>[g.id,{...g,exposed:!!g.exposed,schedules:[],stats:statRow.get({id:g.id}),reviews:publicReviews('AND a.group_id=?',[g.id],5)}]));
   sched.forEach(s=>{ if(map.has(s.group_id)) map.get(s.group_id).schedules.push({...s,remaining:Math.max(0,s.capacity-s.confirmed)}); });
-  res.json({groups:[...map.values()]});
+  res.json({groups:[...map.values()],reviews:publicReviews('',[],8)});
 });
 app.post('/api/public/applications',(req,res)=>{
-  const b=req.body; const s=db.prepare('SELECT s.*,g.exposed,g.status gstatus FROM schedules s JOIN groups g ON g.id=s.group_id WHERE s.id=?').get(Number(b.schedule_id));
-  if(!s||s.cancelled||!s.exposed||s.gstatus!=='운영') return res.status(400).json({error:'신청할 수 없는 일정입니다.'});
-  if(!b.name||!b.age||!b.job||!b.phone) return res.status(400).json({error:'이름, 나이, 직업, 전화번호는 필수입니다.'});
+  const b=req.body; const s=db.prepare("SELECT s.*,g.exposed,g.status gstatus,(SELECT COUNT(*) FROM applications a WHERE a.schedule_id=s.id AND a.status IN ('확정','참석완료','평가완료')) confirmed FROM schedules s JOIN groups g ON g.id=s.group_id WHERE s.id=?").get(Number(b.schedule_id));
+  if(!s||s.cancelled||!s.exposed||s.gstatus!=='운영'||s.date<db.prepare("SELECT date('now','localtime') d").get().d) return res.status(400).json({error:'신청할 수 없는 일정입니다.'});
+  if(s.confirmed>=s.capacity) return res.status(400).json({error:'이미 마감된 일정이에요. 다른 일정을 골라주세요.'});
+  const name=String(b.name||'').trim(),age=Number(b.age),phone=String(b.phone||'').trim(),motivation=String(b.motivation||'').trim();
+  if(!name||!b.job) return res.status(400).json({error:'이름과 직업을 입력해 주세요.'});
+  if(!Number.isInteger(age)||age<19||age>35) return res.status(400).json({error:'만 19~35세만 신청할 수 있어요.'});
+  if(!/^010-\d{4}-\d{4}$/.test(phone)) return res.status(400).json({error:'휴대폰 번호를 010-0000-0000 형식으로 입력해 주세요.'});
+  if(motivation.length<10||motivation.length>300) return res.status(400).json({error:'신청 이유를 10자 이상 300자 이하로 적어주세요.'});
   try{
-    const r=db.prepare(`INSERT INTO applications(group_id,schedule_id,name,age,job,mbti,phone,ad_source,preferred_times,selection_method)
-      VALUES(?,?,?,?,?,?,?,?,?,?)`).run(s.group_id,s.id,String(b.name).trim(),Number(b.age),String(b.job).trim(),String(b.mbti||'').toUpperCase().trim(),String(b.phone).trim(),String(b.ad_source||'직접/기타'),JSON.stringify(b.preferred_times||[]),String(b.selection_method||'직접'));
+    const r=db.prepare(`INSERT INTO applications(group_id,schedule_id,name,age,job,mbti,phone,ad_source,preferred_times,selection_method,motivation)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?)`).run(s.group_id,s.id,name,age,String(b.job).trim(),String(b.mbti||'').toUpperCase().trim(),phone,String(b.ad_source||'직접/기타'),JSON.stringify(b.preferred_times||[]),String(b.selection_method||'직접'),motivation);
     audit(null,'application_created','application',r.lastInsertRowid,{schedule_id:s.id}); res.json({ok:true,id:r.lastInsertRowid,status:'접수'});
-  }catch(e){ if(String(e.message).includes('UNIQUE')) return res.status(409).json({error:'이 일정에는 같은 전화번호로 이미 신청되어 있습니다.'}); throw e; }
+  }catch(e){ if(String(e.message).includes('UNIQUE')) return res.status(409).json({error:'이미 이 일정에 같은 번호로 신청했어요. 신청 현황은 카카오톡 채널로 문의해 주세요.'}); throw e; }
 });
 app.get('/api/public/participation/:token',(req,res)=>{
   const a=db.prepare(`SELECT a.id,a.name,a.status,a.payment_deadline,g.name group_name,s.date,s.start_time,s.end_time
