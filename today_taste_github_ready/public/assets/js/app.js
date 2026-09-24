@@ -288,7 +288,141 @@
     return h;
   }
 
-  /* ---------- 신청·기타 화면은 아래에 이어서 ---------- */
+  /* ---------- 신청 정보 입력 ---------- */
+
+  const JOBS = ['대학생', '직장인', '프리랜서', '기타'];
+  const MBTI = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
+
+  function renderApply(g, query) {
+    const s = (g.schedules || []).find(x => String(x.id) === String(query.s));
+    if (!s || Number(s.remaining) <= 0) { setTimeout(() => go(`#/g/${g.id}`), 0); return ''; }
+    S.sel = { groupId: g.id, date: s.date, scheduleId: s.id };
+    const f = S.form, e = S.errors;
+    const err = k => e[k] ? `<p class="field-err" id="err-${k}">${esc(e[k])}</p>` : '';
+    const inv = k => e[k] ? `aria-invalid="true" aria-describedby="err-${k}"` : '';
+    const mbti = f.mbti || '모름';
+    return `<div data-title="신청하기 — ${esc(g.name)}"></div>` + topbar({ back: true, title: '신청하기' }) + `
+      <section class="pad apply-sum">${UI.cover(g.cover_url, g, 'apply-thumb')}<div><b>${esc(g.name)}</b><span>${TT.fmtDateShort(s.date)} ${TT.timeRange(s.start_time, s.end_time)} · ${esc(s.place)}</span></div><a class="text-link" href="#/g/${g.id}">변경</a></section>
+      <form class="pad form" data-apply-form novalidate>
+        <div class="field"><label for="f-name">이름</label><input id="f-name" class="input" data-bind="name" value="${esc(f.name)}" autocomplete="name" ${inv('name')}>${err('name')}</div>
+        <div class="field"><label for="f-age">나이 (만)</label><input id="f-age" class="input num" data-bind="age" value="${esc(f.age)}" inputmode="numeric" maxlength="2" ${inv('age')}>${e.age ? err('age') : '<p class="hint">만 19~35세만 신청할 수 있어요</p>'}</div>
+        <div class="field"><span class="label" id="l-job">직업</span><div class="choice-row" role="radiogroup" aria-labelledby="l-job">${JOBS.map(j => `<button type="button" class="choice${f.job === j ? ' is-on' : ''}" role="radio" aria-checked="${f.job === j}" data-action="choose" data-key="job" data-val="${j}">${j}</button>`).join('')}</div>${err('job')}</div>
+        <details class="field mbti"${mbti !== '모름' ? ' open' : ''}><summary><span class="label">MBTI <em>선택</em></span><span class="val">${esc(mbti)} ${UI.icon('plus', 'icon icon-sm')}</span></summary><div class="mbti-grid">${[...MBTI, '모름'].map(m => `<button type="button" class="choice${mbti === m ? ' is-on' : ''}" data-action="choose" data-key="mbti" data-val="${m}">${m}</button>`).join('')}</div></details>
+        <div class="field"><label for="f-phone">휴대폰 번호</label><input id="f-phone" class="input num" data-bind="phone" value="${esc(f.phone)}" inputmode="numeric" autocomplete="tel" placeholder="010-0000-0000" ${inv('phone')}><p class="hint">승인·입금 안내를 카카오톡으로 보내드려요</p>${err('phone')}</div>
+        <div class="field"><label for="f-mot">신청 이유</label><textarea id="f-mot" class="input" rows="4" data-bind="motivation" maxlength="300" placeholder="이 모임에서 기대하는 점이나 관심 계기를 적어주세요. 운영자가 승인할 때 참고해요." ${inv('motivation')}>${esc(f.motivation)}</textarea><p class="hint counter num"><span data-counter>${f.motivation.trim().length}</span>/300</p>${err('motivation')}</div>
+        <div class="notice"><b>신청 후 이렇게 진행돼요</b><ol><li>운영자 검토 (보통 24시간 안)</li><li>카카오톡으로 참여 확인 링크 도착</li><li>참여 확정 후 10시간 안에 입금하면 자리 확정</li></ol></div>
+        <div class="agree-group">
+          <label class="agree"><input type="checkbox" data-agree="agreeRequired" ${f.agreeRequired ? 'checked' : ''} ${inv('agreeRequired')}><span><em class="req">필수</em> 개인정보 수집·이용 동의</span><button type="button" class="text-link" data-action="policy" data-tab="privacy">보기</button></label>${err('agreeRequired')}
+          <label class="agree"><input type="checkbox" data-agree="agreeMarketing" ${f.agreeMarketing ? 'checked' : ''}><span><em>선택</em> 새 모임 소식 받기</span></label>
+        </div>
+      </form>
+      <div class="bottom-bar"><button class="btn btn-primary btn-block" data-action="submit" ${S.submitting ? 'disabled' : ''}>${S.submitting ? '보내는 중…' : '신청 보내기'}</button></div>`;
+  }
+  actions.choose = el => { S.form[el.dataset.key] = el.dataset.val; delete S.errors[el.dataset.key]; render(); };
+  document.addEventListener('input', e => {
+    const t = e.target; if (!t.matches('[data-bind]')) return;
+    const k = t.dataset.bind; let v = t.value;
+    if (k === 'phone') { v = TT.formatPhone(v); t.value = v; }
+    if (k === 'age') { v = v.replace(/\D/g, '').slice(0, 2); t.value = v; }
+    S.form[k] = v;
+    if (k === 'motivation') { const c = document.querySelector('[data-counter]'); if (c) c.textContent = v.trim().length; }
+  });
+  document.addEventListener('change', e => {
+    const t = e.target;
+    if (t.matches('[data-agree]')) { S.form[t.dataset.agree] = t.checked; delete S.errors[t.dataset.agree]; }
+  });
+  actions.submit = async () => {
+    S.errors = TT.validateApply(S.form);
+    if (Object.keys(S.errors).length) { render(); document.querySelector('[aria-invalid="true"]')?.focus(); return; }
+    const g = byId(S.sel.groupId), s = g.schedules.find(x => x.id === S.sel.scheduleId);
+    S.submitting = true; render();
+    try {
+      const j = await UI.api('/api/public/applications', { method: 'POST', body: JSON.stringify({
+        schedule_id: s.id, name: S.form.name.trim(), age: Number(S.form.age), job: S.form.job,
+        mbti: S.form.mbti === '모름' ? '' : S.form.mbti, phone: S.form.phone, motivation: S.form.motivation.trim(),
+        preferred_times: S.find.cells.size ? [...S.find.cells] : [TT.cellKey(s)],
+        selection_method: S.find.randomId === g.id ? '랜덤' : '직접', ad_source: S.ad.source,
+      }) });
+      S.done = { id: j.id, group: g.name, when: `${TT.fmtDateShort(s.date)} ${TT.timeRange(s.start_time, s.end_time)}`, place: s.place, name: S.form.name.trim() };
+      S.form = emptyForm(); S.errors = {}; S.find = { cells: new Set(), randomId: null };
+      S.submitting = false;
+      go('#/done');
+    } catch (err) {
+      S.submitting = false; render(); UI.toast(err.message);
+    }
+  };
+
+  /* ---------- 신청 완료 ---------- */
+
+  routes.done = function () {
+    const d = S.done;
+    if (!d) { setTimeout(() => go('#/'), 0); return ''; }
+    const steps = [['신청 접수', '지금'], ['운영자 검토', '보통 24시간 안에 확인해요'], ['참여 확인', '카카오톡으로 링크를 보내드려요'], ['입금 후 확정', '참여 확정 후 10시간 안에 입금해 주세요']];
+    return `<div data-title="신청 완료 — 오늘의 취향"></div>` + topbar({}) + `
+      <section class="pad done">
+        <span class="done-mark">${UI.icon('check')}</span>
+        <h1 class="serif">신청이 접수됐어요</h1>
+        <p class="muted">${esc(d.name)}님, 운영자가 확인하면 카카오톡으로 알려드릴게요.</p>
+        <ol class="progress-v">${steps.map(([t, s], i) => `<li class="${i === 0 ? 'is-now' : ''}"><b>${t}</b><span>${s}</span></li>`).join('')}</ol>
+        <dl class="receipt"><div><dt>접수번호</dt><dd class="num">#${esc(d.id)}</dd></div><div><dt>모임</dt><dd>${esc(d.group)}</dd></div><div><dt>일시</dt><dd>${esc(d.when)}</dd></div><div><dt>장소</dt><dd>${esc(d.place)}</dd></div></dl>
+        <a class="btn btn-secondary btn-block" href="#/">다른 모임 둘러보기</a>
+        <a class="text-link center" href="${esc(SITE.kakaoChannelUrl)}" target="_blank" rel="noopener">${UI.icon('chat', 'icon icon-sm')} 카카오톡 채널로 문의하기</a>
+      </section>`;
+  };
+
+  /* ---------- 시간대로 찾기 ---------- */
+
+  const DAYS = ['평일', '토', '일'], BANDS = ['오전', '오후', '저녁'];
+  actions.cell = el => { const k = el.dataset.key; S.find.cells.has(k) ? S.find.cells.delete(k) : S.find.cells.add(k); S.find.randomId = null; render(); };
+  actions.randomPick = () => {
+    const pool = S.groups.filter(g => TT.openSchedules(g).some(s => S.find.cells.has(TT.cellKey(s))) && g.id !== S.find.randomId);
+    if (pool.length) S.find.randomId = pool[Math.floor(Math.random() * pool.length)].id;
+    render();
+  };
+  actions.showAllMatched = () => { S.find.randomId = null; render(); };
+  routes.find = function () {
+    const matched = S.groups.filter(g => TT.openSchedules(g).some(s => S.find.cells.has(TT.cellKey(s))));
+    const picked = S.find.randomId ? matched.filter(g => g.id === S.find.randomId) : matched;
+    let h = `<div data-title="시간대로 찾기 — 오늘의 취향"></div>` + topbar({ back: true, title: '시간대로 찾기' });
+    h += `<section class="pad"><h2 class="page-q">언제 시간 되세요?</h2><p class="muted">여러 칸을 고를 수 있어요.</p>
+      <table class="matrix"><thead><tr><th></th>${BANDS.map(b => `<th scope="col">${b}</th>`).join('')}</tr></thead><tbody>${DAYS.map(d => `<tr><th scope="row">${d}</th>${BANDS.map(b => {
+        const k = d + '|' + b, on = S.find.cells.has(k);
+        return `<td><button class="cell${on ? ' is-on' : ''}" aria-pressed="${on}" data-action="cell" data-key="${k}" aria-label="${d} ${b}">${on ? UI.icon('check') : ''}</button></td>`;
+      }).join('')}</tr>`).join('')}</tbody></table></section>`;
+    if (!S.find.cells.size) return h + `<p class="pad muted find-hint">시간대를 고르면 맞는 모임이 바로 아래에 보여요.</p>`;
+    h += `<section class="section">${sectionHead(`맞는 모임 ${matched.length}개`, S.find.randomId ? '이 모임은 어때요?' : '고른 시간대에 신청할 수 있는 일정이 있어요')}`;
+    if (matched.length >= 2) h += `<div class="find-actions"><button class="btn btn-line" data-action="randomPick">${S.find.randomId ? '다시 골라주세요' : '이 중에서 골라주세요'}</button>${S.find.randomId ? '<button class="btn btn-line" data-action="showAllMatched">모두 보기</button>' : ''}</div>`;
+    h += picked.length
+      ? `<div class="grid2">${picked.map(g => groupCard(g)).join('')}</div>`
+      : `<div class="empty">${UI.icon('calendar')}<h3>고른 시간대에 열리는 모임이 아직 없어요</h3><p>다른 시간대를 골라보세요.</p></div>`;
+    return h + '</section>';
+  };
+
+  /* ---------- 이용 안내·약관 ---------- */
+
+  routes.guide = function () {
+    return `<div data-title="이용 안내 — 오늘의 취향"></div>` + topbar({ back: true, title: '이용 안내' }) + `
+      <section class="pad read guide">
+        <img class="guide-photo" src="/assets/img/brand/guide.jpg" alt="" onerror="this.remove()">
+        <h1 class="serif">오늘의 취향은 이렇게 운영돼요</h1>
+        <p>대구 중구의 작은 공방과 카페에서 열리는 원데이 모임이에요. 한 모임은 최대 세 명까지만 받아요. 대화와 실습이 충분하도록 운영자가 신청서를 보고 한 테이블을 꾸려요.</p>
+        <h2>신청부터 모임 당일까지</h2>${stepsList()}
+        <h2>입금과 확정</h2><p>참여를 확정하면 참여 확인 페이지에 입금 계좌와 금액이 표시돼요. 10시간 안에 신청자 이름으로 입금해 주세요. 기한이 지나면 자동으로 취소되고 다음 신청자에게 기회가 넘어가요.</p>
+        <h2>환불 공통 원칙</h2><ul class="bullets"><li>승인 전 취소는 언제나 전액 환불돼요.</li><li>승인 후에는 모임마다 정한 환불 규정을 따라요. 날짜 기준은 자정이에요.</li><li>정원이 먼저 찼거나 일정이 취소되면 입금액 전액을 돌려드려요.</li></ul>
+        <h2>문의</h2><p>${esc(SITE.csHours)} · <a class="text-link" href="${esc(SITE.kakaoChannelUrl)}" target="_blank" rel="noopener">카카오톡 채널</a></p>
+      </section>` + footer();
+  };
+  function policyBody(tab) {
+    const company = esc(SITE.business.company);
+    return tab === 'terms'
+      ? `<div class="read policy"><h3>제1조 (목적)</h3><p>이 약관은 ${company}(이하 "회사")가 운영하는 원데이 모임 신청 서비스의 이용 조건을 정합니다.</p><h3>제2조 (신청과 승인)</h3><p>신청은 회원가입 없이 할 수 있으며, 담당 운영자의 검토를 거쳐 승인 여부가 정해집니다. 회사는 모임의 성격에 맞지 않는 신청을 승인하지 않을 수 있습니다.</p><h3>제3조 (입금과 확정)</h3><p>참여 의사를 확인한 뒤 10시간 안에 입금이 확인되어야 참여가 확정됩니다. 기한이 지나면 신청은 자동으로 취소됩니다.</p><h3>제4조 (환불)</h3><p>승인 전 취소는 전액 환불하며, 승인 후에는 각 모임 상세에 표시된 환불 규정을 따릅니다. 정원 초과 입금·일정 취소 등 회사 사유로 참여할 수 없는 경우 전액 환불합니다.</p></div>`
+      : `<div class="read policy"><h3>수집 항목</h3><p>이름, 나이, 직업, MBTI(선택), 휴대폰 번호, 신청 이유, 선호 시간대, 유입 경로</p><h3>이용 목적</h3><p>모임 신청 접수와 승인 검토, 참여 확인·입금 안내, 참석 확인, 모임 후 평가 요청</p><h3>제공</h3><p>신청 정보는 해당 모임을 담당하는 운영자에게만 제공됩니다.</p><h3>보관 기간</h3><p>모임 종료 후 5년간 보관한 뒤 파기합니다. 관계 법령에 따라 보관이 필요한 경우 해당 기간을 따릅니다.</p><h3>동의 거부</h3><p>동의를 거부할 수 있으나, 이 경우 신청할 수 없습니다.</p></div>`;
+  }
+  routes.policy = function (parts) {
+    const tab = parts[1] === 'terms' ? 'terms' : 'privacy';
+    const title = tab === 'terms' ? '이용약관' : '개인정보처리방침';
+    return `<div data-title="${title} — 오늘의 취향"></div>` + topbar({ back: true, title }) + `<section class="pad">${policyBody(tab)}</section>` + footer();
+  };
 
   load();
 })();
