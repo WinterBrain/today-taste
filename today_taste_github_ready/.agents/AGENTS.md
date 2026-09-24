@@ -49,13 +49,13 @@ npm test                      # node:test. 임시 DB로 시드+서버를 띄워 
 일정 취소 시 확정 → 환불필요 (+ refunds)
 ```
 - 정원 계산은 `확정`·`참석완료`·`평가완료` 상태를 합산한다(공개 API의 `remaining`, `confirmPayment` 모두 동일 기준).
-- 참여 토큰은 수락 후에도 입금 안내 재조회를 위해 유지하고(수락/거절 처리는 `승인` 상태에서 한 번만), 거절·출석 처리 시 NULL로 비운다. 평가 토큰은 제출 후 NULL. PG 가상계좌 미연동이라 입금 확인은 수동이며 계좌는 `.env` 의 `PAYMENT_BANK/ACCOUNT/HOLDER` 로 안내한다.
+- 참여 토큰은 수락 후에도 입금 안내 재조회를 위해 유지하고(수락/거절 처리는 `승인` 상태에서 한 번만), 거절·출석 처리 시 NULL로 비우고, 모임일로부터 7일이 지나면 만료된다(`lib/retention.js`). 출석 처리는 `확정` 상태이고 모임이 시작된 뒤에만 가능하다. 개인정보는 `lib/retention.js` 가 매일 보유 기간(무입금 30일·입금 5년)이 지난 신청을 파기한다. 평가 토큰은 제출 후 NULL. PG 가상계좌 미연동이라 입금 확인은 수동이며 계좌는 `.env` 의 `PAYMENT_BANK/ACCOUNT/HOLDER` 로 안내한다.
 - 공개 API는 모임별 `stats`(진행 횟수·참여 인원·평점)와 공개 후기(`publish_ok=1 AND hidden=0`, 이름 마스킹)를 내려준다. 신청은 서버에서 나이 19~35·전화 형식·신청 이유 10~300자·지난/마감 일정을 검증한다.
 
 ### 프론트엔드: `public/`
 - 번들러·프레임워크 없음. HTML은 껍데기이고 스크립트는 `public/assets/js/` 에 있다(읽기 쉬운 여러 줄 스타일).
   - `core.js`: 순수 함수(날짜·시간·좌석·검증·해시 파싱·필터·카운트다운). UMD라 `tests/core.test.js` 와 `server.js`(이름 가림·직업 목록)에서 require 한다. 로직은 가능하면 여기에 두고 테스트한다.
-  - `ui.js`: 아이콘(인라인 SVG), 좌석 점, 커버 이미지(없거나 실패 시 타이포그래피 대체), api, toast, 시트. `site-config.js`: 상호·사업자 정보·고객센터(운영 전 교체).
+  - `ui.js`: 아이콘(인라인 SVG), 좌석 점, 커버 이미지(없거나 실패 시 타이포그래피 대체), api, toast, 시트. `site-config.js`: 상호·사업자 정보·고객센터·개인정보 보호책임자(운영 전 교체). `policy.js`: 이용약관·개인정보처리방침·신청 동의문 본문(보유 기간은 `lib/retention.js`, 환불 기준은 `core.js` `REFUND_RULES` 와 일치해야 함).
   - `app.js`: 신청자 SPA. 해시 라우트 `#/`, `#/g/:id`, `#/g/:id/apply?s=`, `#/done`, `#/find`, `#/guide`, `#/policy/:tab`. `routes`/`actions` 테이블 + `data-action` 이벤트 위임.
   - `admin.js`: 운영콘솔(800px 이하 모바일 레이아웃). `participation.js`, `review.js`: 토큰 링크 페이지(서버가 `/participation/:token`, `/review/:token` 으로 HTML 서빙).
 - CSS: `tokens.css`(색·글꼴·간격, 라이트/다크 토큰) → `app.css`(신청자·링크 페이지) / `admin.css`(콘솔). 포인트 컬러는 `--accent` 한 가지만 쓰고, UI에 이모지를 쓰지 않는다(디자인 원칙은 `docs/design/02-redesign-plan.md`).

@@ -151,7 +151,7 @@
     ['혼자 신청해도 되나요?', '대부분 혼자 오세요. 최대 세 명이라 자연스럽게 대화가 시작돼요.'],
     ['신청하면 바로 확정인가요?', '아니에요. 운영자 승인 → 참여 확인 → 10시간 안 입금이 끝나면 확정돼요.'],
     ['나이 제한이 있나요?', '만 19~35세만 신청할 수 있어요.'],
-    ['취소하면 환불되나요?', '승인 전 취소는 언제나 전액 환불돼요. 승인 후에는 모임마다 다른 환불 규정을 따라요.'],
+    ['취소하면 환불되나요?', '입금 전에는 비용 없이 취소할 수 있어요. 입금 후에는 모임 4일 전까지 전액, 그 뒤로는 날짜에 따라 일부를 빼고 돌려드려요. 자세한 기준은 이용 안내에 있어요.'],
   ];
   actions.filter = el => { S.filter = el.dataset.key; render(); };
 
@@ -218,7 +218,8 @@
     try { list = (await UI.api(`/api/public/groups/${g.id}/reviews`)).reviews; } catch (e) { /* 실패하면 받아둔 최근 후기만 보여준다 */ }
     UI.openSheet(`후기 ${list.length}개`, list.map(r => reviewCard(r, { showGroup: false })).join(''));
   };
-  actions.policy = el => UI.openSheet(el.dataset.tab === 'terms' ? '이용약관' : '개인정보 수집·이용 동의', policyBody(el.dataset.tab));
+  const SHEETS = { terms: ['이용약관', 'terms'], privacy: ['개인정보 수집·이용 동의', 'consentPrivacy'], marketing: ['새 모임 소식 수신 동의', 'consentMarketing'] };
+  actions.policy = el => { const [title, fn] = SHEETS[el.dataset.tab] || SHEETS.privacy; UI.openSheet(title, POLICY[fn]()); };
 
   function trustLine(st) {
     const items = [];
@@ -251,7 +252,9 @@
   function renderDetail(g) {
     const photos = [g.cover_url, ...TT.listOf(g.gallery_json)].filter(Boolean);
     const forWhom = TT.listOf(g.for_whom_json), includes = TT.listOf(g.includes_json), order = TT.listOf(g.order_json), prep = TT.listOf(g.prep_json), faq = TT.pairsOf(g.faq_json);
-    const refund = String(g.refund_policy || '').split('\n').map(x => x.trim()).filter(Boolean);
+    // 모임별 규정이 없으면 공통 환불 기준을 보여준다
+    const ownRefund = String(g.refund_policy || '').split('\n').map(x => x.trim()).filter(Boolean);
+    const refund = ownRefund.length ? ownRefund : TT.REFUND_RULES;
     const schedules = g.schedules || [];
     const sel = schedules.find(s => s.id === S.sel.scheduleId);
     const bands = ['오전', '오후', '저녁'].filter(b => schedules.some(s => TT.band(s.start_time) === b));
@@ -296,7 +299,7 @@
     h += readSection('준비물', bulletList(prep));
     if (g.host_name) h += readSection('호스트', `<div class="host">${g.host_photo_url ? `<img src="${esc(g.host_photo_url)}" alt="" class="host-photo" data-initial="${esc(hostInitial)}">` : `<span class="host-photo initial">${esc(hostInitial)}</span>`}<div><span class="host-label">호스트</span><b>${esc(g.host_name)}</b><span>${esc(g.host_role)}</span></div></div>${g.host_bio ? `<p>${esc(g.host_bio)}</p>` : ''}`);
     h += readSection('오시는 길', `<p class="place"><b>대구 중구 ${esc(g.place)}</b>${g.place_note ? `<br>${esc(g.place_note)}` : ''}</p><p class="muted">정확한 위치는 참여 확정 후 안내해요.</p><a class="btn btn-line" href="https://map.kakao.com/?q=${encodeURIComponent('대구 ' + g.place)}" target="_blank" rel="noopener">${UI.icon('external', 'icon icon-sm')}카카오맵에서 보기</a>`);
-    h += readSection('환불 규정', `${bulletList(refund)}<p class="muted refund-note">승인 전 취소는 언제나 전액 환불돼요. 날짜 기준은 자정이에요.</p>`);
+    h += readSection('환불 규정', `${bulletList(refund)}<p class="muted refund-note">입금 전 취소는 비용이 없어요. 날짜 기준은 모임일 자정이에요. ${ownRefund.length ? '이 규정이 <a class="text-link" href="#/policy/terms">이용약관</a>의 공통 기준보다 불리하면 공통 기준을 따라요.' : ''}</p>`);
     h += readSection('자주 묻는 질문', faq.length ? faqList(faq) : '');
     const others = S.groups.filter(x => x.id !== g.id && TT.openSchedules(x).length).sort((a, b) => (b.field === g.field) - (a.field === g.field));
     if (others.length) h += `<div class="rule"></div><section class="section">${sectionHead('다른 모임도 둘러보세요')}<div class="hscroll">${others.map(x => groupCard(x, { wide: true })).join('')}</div></section>`;
@@ -330,7 +333,7 @@
         <div class="notice"><b>신청 후 이렇게 진행돼요</b><ol><li>운영자 검토 (보통 24시간 안)</li><li>카카오톡으로 참여 확인 링크 도착</li><li>참여 확정 후 10시간 안에 입금하면 자리 확정</li></ol></div>
         <div class="agree-group">
           <label class="agree"><input type="checkbox" data-agree="agreeRequired" ${f.agreeRequired ? 'checked' : ''} ${inv('agreeRequired')}><span><em class="req">필수</em> 개인정보 수집·이용 동의</span><button type="button" class="text-link" data-action="policy" data-tab="privacy">보기</button></label>${err('agreeRequired')}
-          <label class="agree"><input type="checkbox" data-agree="agreeMarketing" ${f.agreeMarketing ? 'checked' : ''}><span><em>선택</em> 새 모임 소식 받기</span></label>
+          <label class="agree"><input type="checkbox" data-agree="agreeMarketing" ${f.agreeMarketing ? 'checked' : ''}><span><em>선택</em> 새 모임 소식 받기 (광고성 정보 수신 동의)</span><button type="button" class="text-link" data-action="policy" data-tab="marketing">보기</button></label>
         </div>
       </form>
       <div class="bottom-bar"><button class="btn btn-primary btn-block" data-action="submit" ${S.submitting ? 'disabled' : ''}>${S.submitting ? '보내는 중…' : '신청 보내기'}</button></div>`;
@@ -360,7 +363,7 @@
     try {
       const j = await UI.api('/api/public/applications', { method: 'POST', body: JSON.stringify({
         schedule_id: s.id, name: S.form.name.trim(), age: Number(S.form.age), job: S.form.job,
-        mbti: S.form.mbti === '모름' ? '' : S.form.mbti, phone: S.form.phone, motivation: S.form.motivation.trim(),
+        mbti: S.form.mbti === '모름' ? '' : S.form.mbti, phone: S.form.phone, motivation: S.form.motivation.trim(), marketing_ok: S.form.agreeMarketing,
         preferred_times: S.find.cells.size ? [...S.find.cells] : [TT.cellKey(s)],
         selection_method: S.find.randomId === g.id ? '랜덤' : '직접', ad_source: S.ad.source,
       }) });
@@ -438,20 +441,15 @@
         <p>대구 중구의 작은 공방과 카페에서 열리는 원데이 모임이에요. 한 모임은 최대 세 명까지만 받아요. 대화와 실습이 충분하도록 운영자가 신청서를 보고 한 테이블을 꾸려요.</p>
         <h2>신청부터 모임 당일까지</h2>${stepsList()}
         <h2>입금과 확정</h2><p>참여를 확정하면 참여 확인 페이지에 입금 계좌와 금액이 표시돼요. 10시간 안에 신청자 이름으로 입금해 주세요. 기한이 지나면 자동으로 취소되고 다음 신청자에게 기회가 넘어가요.</p>
-        <h2>환불 공통 원칙</h2><ul class="bullets"><li>승인 전 취소는 언제나 전액 환불돼요.</li><li>승인 후에는 모임마다 정한 환불 규정을 따라요. 날짜 기준은 자정이에요.</li><li>정원이 먼저 찼거나 일정이 취소되면 입금액 전액을 돌려드려요.</li></ul>
+        <h2>취소와 환불</h2><p>입금 전에는 언제든 비용 없이 취소할 수 있어요. 정원이 먼저 찼거나 일정이 취소되면 입금액 전액을 돌려드려요. 입금 후 사정이 생겨 취소할 때는 아래 기준을 따르고, 환불은 3영업일 안에 해드려요. 날짜 기준은 모임일 자정이에요.</p>${bulletList(TT.REFUND_RULES)}<p class="muted">자세한 내용은 <a class="text-link" href="#/policy/terms">이용약관</a> 제9·10조에 있어요.</p>
         <h2>문의</h2><p>${esc(SITE.csHours)} · <a class="text-link" href="${esc(SITE.kakaoChannelUrl)}" target="_blank" rel="noopener">카카오톡 채널</a></p>
       </section>` + footer();
   };
-  function policyBody(tab) {
-    const company = esc(SITE.business.company);
-    return tab === 'terms'
-      ? `<div class="read policy"><h3>제1조 (목적)</h3><p>이 약관은 ${company}(이하 "회사")가 운영하는 원데이 모임 신청 서비스의 이용 조건을 정합니다.</p><h3>제2조 (신청과 승인)</h3><p>신청은 회원가입 없이 할 수 있으며, 담당 운영자의 검토를 거쳐 승인 여부가 정해집니다. 회사는 모임의 성격에 맞지 않는 신청을 승인하지 않을 수 있습니다.</p><h3>제3조 (입금과 확정)</h3><p>참여 의사를 확인한 뒤 10시간 안에 입금이 확인되어야 참여가 확정됩니다. 기한이 지나면 신청은 자동으로 취소됩니다.</p><h3>제4조 (환불)</h3><p>승인 전 취소는 전액 환불하며, 승인 후에는 각 모임 상세에 표시된 환불 규정을 따릅니다. 정원 초과 입금·일정 취소 등 회사 사유로 참여할 수 없는 경우 전액 환불합니다.</p></div>`
-      : `<div class="read policy"><h3>수집 항목</h3><p>이름, 나이, 직업, MBTI(선택), 휴대폰 번호, 신청 이유, 선호 시간대, 유입 경로</p><h3>이용 목적</h3><p>모임 신청 접수와 승인 검토, 참여 확인·입금 안내, 참석 확인, 모임 후 평가 요청</p><h3>제공</h3><p>신청 정보는 해당 모임을 담당하는 운영자에게만 제공됩니다.</p><h3>보관 기간</h3><p>모임 종료 후 5년간 보관한 뒤 파기합니다. 관계 법령에 따라 보관이 필요한 경우 해당 기간을 따릅니다.</p><h3>동의 거부</h3><p>동의를 거부할 수 있으나, 이 경우 신청할 수 없습니다.</p></div>`;
-  }
+  // 약관·처리방침 본문은 policy.js(window.POLICY)에 있다
   routes.policy = function (parts) {
     const tab = parts[1] === 'terms' ? 'terms' : 'privacy';
     const title = tab === 'terms' ? '이용약관' : '개인정보처리방침';
-    return `<div data-title="${title} — 오늘의 취향"></div>` + topbar({ back: true, title }) + `<section class="pad">${policyBody(tab)}</section>` + footer();
+    return `<div data-title="${title} — 오늘의 취향"></div>` + topbar({ back: true, title }) + `<section class="pad">${POLICY[tab]()}</section>` + footer();
   };
 
   load();

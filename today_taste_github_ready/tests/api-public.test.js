@@ -98,3 +98,14 @@ test('group review endpoint returns every public review, masked', async () => {
   assert.equal(r.body.reviews.length, coffee.stats.review_count);
   assert.ok(r.body.reviews.every(x => /^.\*+$/.test(x.name_masked) && !('name' in x)));
 });
+
+test('marketing consent is stored only when opted in', async () => {
+  const g = (await api(s.base, '/api/public/groups')).body.groups.find(x => x.tag === '향수');
+  const sid = g.schedules.find(x => x.remaining > 0).id;
+  const yes = await api(s.base, '/api/public/applications', { method: 'POST', body: { ...validBody(sid, '010-9999-0011'), marketing_ok: true } });
+  const no = await api(s.base, '/api/public/applications', { method: 'POST', body: validBody(sid, '010-9999-0012') });
+  const db = s.open();
+  const get = id => db.prepare('SELECT marketing_ok FROM applications WHERE id=?').get(id).marketing_ok;
+  assert.equal(get(yes.body.id), 1); assert.equal(get(no.body.id), 0);
+  db.close();
+});

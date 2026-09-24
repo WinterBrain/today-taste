@@ -66,12 +66,50 @@ test('schedule create/update rejects malformed date and time', async () => {
   assert.equal(r.status, 200);
 });
 
-test('attendance closes the participation link', async () => {
+// 1분 전에 시작한 회차와 그 회차의 신청 한 건을 만든다
+function startedApp(status, phone, tokenValue = null) {
   const db = s.open();
-  const a = db.prepare("SELECT id FROM applications WHERE status='확정' AND group_id IN (1,3) LIMIT 1").get();
-  db.prepare("UPDATE applications SET participation_token='attend-token-1' WHERE id=?").run(a.id);
+  const sid = db.prepare("INSERT INTO schedules(group_id,date,start_time,end_time,place,capacity,fee) VALUES(1,date('now','localtime','-1 minute'),strftime('%H:%M','now','localtime','-1 minute'),'23:59','진행 중',3,39000)").run().lastInsertRowid;
+  const id = db.prepare("INSERT INTO applications(group_id,schedule_id,name,age,job,phone,status,participation_token) VALUES(1,?,'출석대상',25,'직장인',?,?,?)").run(sid, phone, status, tokenValue).lastInsertRowid;
   db.close();
-  const r = await api(s.base, `/api/admin/applications/${a.id}/attendance`, { method: 'POST', token: op, body: { attended: true } });
-  assert.equal(r.status, 200);
+  return id;
+}
+const attend = (id, attended) => api(s.base, `/api/admin/applications/${id}/attendance`, { method: 'POST', token: op, body: { attended } });
+
+test('attendance closes the participation link', async () => {
+  const id = startedApp('확정', '010-5555-0001', 'attend-token-1');
+  assert.equal((await api(s.base, '/api/public/participation/attend-token-1')).status, 200);
+  const r = await attend(id, true);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
   assert.equal((await api(s.base, '/api/public/participation/attend-token-1')).status, 404);
+});
+
+test('attendance requires a confirmed application whose session has started', async () => {
+  const db = s.open();
+  const future = db.prepare("SELECT id FROM applications WHERE status='확정' AND group_id IN (1,3) LIMIT 1").get().id;
+  const pending = db.prepare("SELECT id FROM applications WHERE status='접수' AND group_id IN (1,3) LIMIT 1").get().id;
+  db.close();
+  let r = await attend(future, true);
+  assert.equal(r.status, 400); assert.match(r.body.error, /시작된 뒤/);
+  assert.equal((await attend(pending, true)).status, 400);
+  const id = startedApp('확정', '010-5555-0002');
+  assert.equal((await attend(id, false)).body.status, '불참');
+  assert.equal((await attend(id, false)).status, 400, 'absent twice is rejected');
+  assert.equal((await attend(id, true)).body.status, '참석완료', 'absent can be corrected to attended');
+  assert.equal((await attend(id, false)).status, 400, 'attended cannot be reverted');
+});
+
+test('purge endpoint: admin only, refuses paid applications', async () => {
+  const db = s.open();
+  const rejected = db.prepare("INSERT INTO applications(group_id,schedule_id,name,age,job,phone,status,motivation) VALUES(1,1,'파기대상',25,'직장인','010-5555-0003','거절','지워져야 하는 신청 이유')").run().lastInsertRowid;
+  const paid = db.prepare('SELECT id FROM applications WHERE paid_at IS NOT NULL LIMIT 1').get().id;
+  db.close();
+  const purge = (id, token) => api(s.base, `/api/admin/applications/${id}/purge`, { method: 'POST', token });
+  assert.equal((await purge(rejected, op)).status, 403);
+  assert.equal((await purge(paid, admin)).status, 400);
+  assert.equal((await purge(rejected, admin)).status, 200);
+  const db2 = s.open();
+  const row = db2.prepare('SELECT name,phone,motivation,purged_at FROM applications WHERE id=?').get(rejected);
+  db2.close();
+  assert.equal(row.name, '(파기)'); assert.equal(row.motivation, ''); assert.ok(!row.phone.startsWith('010')); assert.ok(row.purged_at);
 });

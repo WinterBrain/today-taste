@@ -76,6 +76,17 @@
   // 공개 후기·평가 페이지의 이름 가림. 서버(server.js)도 이 함수를 쓴다. '김하나' → '김**', '김하' → '김*'
   const maskName = n => { const c = [...String(n || '').trim()]; return c.length ? c[0] + '*'.repeat(Math.max(1, c.length - 1)) : '익명'; };
 
+  // 공통 환불 기준 (이용약관 제10조). 모임별 규정이 이보다 참가자에게 불리하면 이 기준을 따른다.
+  // 소비자분쟁해결기준(공정거래위원회 고시)의 공연업 기준을 원데이 모임 일정에 맞춰 준용했다.
+  const REFUND_RULES = [
+    '모임 4일 전까지 취소: 전액 환불',
+    '모임 3일 전~2일 전 취소: 참가비의 20%를 뺀 금액 환불',
+    '모임 1일 전 취소: 참가비의 30%를 뺀 금액 환불',
+    '모임 당일 시작 전 취소: 참가비의 90%를 뺀 금액 환불',
+    '입금 후 24시간 안의 취소는 모임 3일 전까지라면 전액 환불',
+    '모임 시작 후 취소 또는 연락 없는 불참: 환불되지 않음',
+  ];
+
   const JOBS = ['대학생', '직장인', '프리랜서', '기타'];
   const NAME_MAX = 20;
   // 서버(/api/public/applications)와 같은 규칙. 키가 없으면 통과.
@@ -121,6 +132,6 @@
     return { expired: false, text: `${pad(Math.floor(t / 3600))}:${pad(Math.floor((t % 3600) / 60))}:${pad(t % 60)}` };
   }
 
-  const TT = { esc, won, parseDate, parseSqlDateTime, dowKo, fmtDateShort, fmtDateLong, todayStr, daysBetween, timeLabel, timeRange, dayBucket, band, cellKey, seatInfo, parseStep, listOf, pairsOf, parseHash, formatPhone, caretAfterDigits, maskName, JOBS, NAME_MAX, validateApply, openSchedules, nextSchedule, matchesFilter, countdown, deadlineFromSeconds, clockLabel };
+  const TT = { esc, won, parseDate, parseSqlDateTime, dowKo, fmtDateShort, fmtDateLong, todayStr, daysBetween, timeLabel, timeRange, dayBucket, band, cellKey, seatInfo, parseStep, listOf, pairsOf, parseHash, formatPhone, caretAfterDigits, maskName, REFUND_RULES, JOBS, NAME_MAX, validateApply, openSchedules, nextSchedule, matchesFilter, countdown, deadlineFromSeconds, clockLabel };
   if (typeof module !== 'undefined' && module.exports) module.exports = TT; else root.TT = TT;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -4,7 +4,7 @@
 > **기록 범위**: 기능·API·DB·운영 설정처럼 **다른 사람의 작업에 영향을 주는 변경**만 적습니다. 색·여백·문구 같은 디자인 변경은 기능에 영향이 없으므로 적지 않습니다.
 > **갱신 규칙**: 작업할 때마다 이 문서를 함께 갱신합니다(에이전트 지침: `.agents/AGENTS.md` 의 "작업 현황 문서" 절).
 
-**마지막 갱신**: 2026-09-24 · **현재 브랜치 상태**: 개편 작업은 `feat/redesign` 에 있고 **`main` 에 아직 병합되지 않았습니다** (커밋 22개, 테스트 37/37 통과).
+**마지막 갱신**: 2026-09-24 · **현재 브랜치 상태**: 개편 작업은 `feat/redesign` 에 있고 **`main` 에 아직 병합되지 않았습니다** (커밋 23개, 테스트 43/43 통과).
 
 ---
 
@@ -14,14 +14,17 @@
 
 | 구분 | 내용 | 해야 할 일 |
 |---|---|---|
-| DB 스키마 | `groups` 에 `cover_url, gallery_json, for_whom_json, includes_json, fee_note, host_bio, host_photo_url, place_note`, `applications` 에 `motivation`, `reviews` 에 `publish_ok, hidden` 컬럼 추가 | 없음 — 서버를 켜면 기존 DB에 자동으로 추가됩니다 |
+| DB 스키마 | `groups` 에 `cover_url, gallery_json, for_whom_json, includes_json, fee_note, host_bio, host_photo_url, place_note`, `applications` 에 `motivation, marketing_ok, purged_at`, `reviews` 에 `publish_ok, hidden` 컬럼 추가 | 없음 — 서버를 켜면 기존 DB에 자동으로 추가됩니다 |
 | 마이그레이션 위치 | 컬럼 추가 목록이 `lib/migrate.js` 의 `COLUMNS` 한 곳으로 모였습니다 (전에는 server.js와 seed-demo.js에 복제) | 앞으로 컬럼을 추가할 때는 `lib/migrate.js` 와 `schema.sql` 만 고칩니다 |
 | 환경 변수 | `PAYMENT_BANK`, `PAYMENT_ACCOUNT`, `PAYMENT_HOLDER` 추가 (참여 확인 페이지에 표시할 입금 계좌) | 각자 `.env` 에 추가. 비워두면 "운영자가 카카오톡으로 안내" 문구가 나옵니다 |
 | 사이트 설정 | 상호·사업자 정보·고객센터 채널이 `public/assets/js/site-config.js` 에 자리표시 값으로 들어 있습니다 | 운영 전 실제 값으로 교체 |
 | 신청 API | `POST /api/public/applications` 가 **`motivation`(신청 이유, 10~300자)을 필수로** 받습니다. 나이 19~35, 전화 `010-0000-0000`, **이름 20자 이내, 직업은 `대학생·직장인·프리랜서·기타` 중 하나**(목록은 `core.js` 의 `TT.JOBS`), 지난 회차(시작 시각 기준)·마감 회차·취소 일정은 400으로 거절합니다 | 신청 화면을 따로 만드는 경우 `motivation` 을 보내고 직업은 목록 값만 보냅니다 |
 | 일정 API | `POST/PATCH /api/admin/schedules` 가 날짜 `YYYY-MM-DD`, 시간 `HH:MM`, 정원 1 이상, 참가비 0 이상이 아니면 400으로 거절합니다 | 스크립트로 일정을 넣는다면 형식을 맞춥니다 |
-| 참여 링크 정책 | 참여 토큰이 **수락 후에도 유지**됩니다(입금 안내를 다시 보기 위함). 수락·거절은 `승인` 상태에서 한 번만 가능하고, 거절하면 토큰을 지웁니다. **출석 처리(참석·불참) 때도 지웁니다.** 일정이 취소되거나 모임체가 폐쇄되면 수락을 막고 `schedule_cancelled: true` 를 내려줍니다 | AGENTS.md 의 "토큰은 일회용" 설명은 이 내용으로 바뀌었습니다 |
+| 참여 링크 정책 | 참여 토큰이 **수락 후에도 유지**됩니다(입금 안내를 다시 보기 위함). 수락·거절은 `승인` 상태에서 한 번만 가능하고, 거절·출석 처리 때 지웁니다. **모임일로부터 7일이 지나면 만료(404)** 되고, 이미 시작한 모임은 수락할 수 없습니다. 일정이 취소되거나 모임체가 폐쇄되면 수락을 막고 `schedule_cancelled: true` 를 내려줍니다 | AGENTS.md 의 "토큰은 일회용" 설명은 이 내용으로 바뀌었습니다 |
 | 공용 로직 | `server.js` 가 `public/assets/js/core.js` 를 `require` 합니다(이름 가림 `maskName`, 직업 목록 `JOBS`, 이름 길이 `NAME_MAX`) | `core.js` 를 옮기거나 브라우저 전용 코드를 넣지 마세요 |
+| 출석 처리 | `POST /api/admin/applications/:id/attendance` 는 **`확정` 상태이고 모임이 시작된 뒤에만** 됩니다. 잘못 누른 `불참` 은 `참석` 으로 바꿀 수 있고, `참석완료` 는 되돌릴 수 없습니다. 목록 API에 `started` 추가 | 모임 전에는 콘솔에 출석 버튼이 보이지 않습니다 |
+| 개인정보 보유·파기 | `lib/retention.js` 가 매일 04:00 실행: 입금 기록 없는 신청은 모임일+30일, 입금 기록 있는 신청은 모임일+5년 뒤 이름·연락처·신청 이유 등을 되돌릴 수 없게 지웁니다(`purged_at`). 총괄자는 삭제 요청 시 콘솔에서 즉시 파기(`POST /api/admin/applications/:id/purge`, 입금 기록 있으면 거절)·마케팅 수신 철회(`/marketing-off`) 가능 | 기간을 바꾸려면 `lib/retention.js` 와 `policy.js` 를 함께 고칩니다(테스트가 두 곳이 일치하는지 검사) |
+| 약관·처리방침·환불 | 본문은 `public/assets/js/policy.js`, 공통 환불 기준은 `core.js` 의 `REFUND_RULES`. 모임별 환불 규정을 비우면 공통 기준이 보이고, 모임 규정이 공통 기준보다 불리하면 약관상 공통 기준이 적용됩니다. 신청 폼의 선택 동의(새 모임 소식)가 이제 `marketing_ok` 로 저장됩니다 | `site-config.js` 에 `privacyOfficer`, `hostingProvider`, `policyEffectiveDate` 를 실제 값으로 채웁니다 |
 | 후기 공개 | 평가 제출 시 `publish_ok`(공개 동의)를 받습니다. 공개 API에는 **공개 동의 + 숨기지 않은 + 본문이 있는** 후기만 이름을 `박**` 형태로 가려서 나갑니다. 총괄자가 콘솔에서 숨길 수 있습니다(`PATCH /api/admin/reviews/:id`) | 기존 평가는 모두 비공개로 취급됩니다 |
 | 남은 시간 계산 | 입금 기한까지 남은 시간은 서버가 `payment_seconds_left` 로 계산해서 내려줍니다 (아래 Windows 시간대 문제 때문) | 브라우저에서 SQL 시각을 직접 현재 시각과 비교하지 마세요 |
 | 프론트 구조 | 인라인 스크립트가 `public/assets/js/*.js` 로 분리됐습니다. 신청자 앱은 해시 라우트(`#/`, `#/g/:id`, `#/g/:id/apply?s=`, `#/done`, `#/find`, `#/guide`, `#/policy/:tab`)를 씁니다. `public/assets/css/style.css` 는 삭제됐습니다 | 기존 파일을 고치던 작업이 있다면 새 위치로 옮겨야 합니다 |
@@ -39,6 +42,13 @@
 ### 2026-09-24 — 프론트엔드 개편과 운영 기능 보강 (`feat/redesign`, 미병합)
 
 기획 근거: [01-reference-analysis.md](design/01-reference-analysis.md), [02-redesign-plan.md](design/02-redesign-plan.md) · 구현 계획: [plans/2026-09-24-frontend-redesign.md](superpowers/plans/2026-09-24-frontend-redesign.md)
+
+**약관·개인정보·링크 만료·출석 검사 (같은 날 추가)**
+- 이용약관·개인정보처리방침 작성 (`policy.js`): 전자상거래법·개인정보 보호법·정보통신망법, 소비자분쟁해결기준(공연업 준용)을 근거로 함. 신청 화면 동의문도 법정 4항목(목적·항목·보유기간·거부 권리)으로 교체
+- 공통 환불 기준 `REFUND_RULES` (4일 전 전액 / 3~2일 전 20% 공제 / 1일 전 30% / 당일 90% / 입금 후 24시간 내 전액). 이용 안내·FAQ·모임 상세에 반영
+- 개인정보 자동 파기(`lib/retention.js`, 매일 04:00), 총괄자 즉시 파기·마케팅 수신 철회 버튼, 마케팅 동의 저장(`marketing_ok`)
+- 참여 링크 만료(모임일+7일), 시작한 모임 수락 차단, 출석 처리 상태·시각 검사
+- 운영콘솔: 800px 이하 화면에 "PC 이용 권장" 안내 (휴대폰 대응은 하지 않기로 함)
 
 **남은 작업 정리 (이미지 제외, 같은 날 추가)**
 - 보안: 운영콘솔 `scheduleForm` 값 이스케이프 + 일정 API 형식 검증 (운영자가 총괄자 화면에 스크립트를 심을 수 있던 경로 차단)
@@ -101,8 +111,10 @@
 - [ ] `public/assets/js/site-config.js` 의 상호·대표·사업자등록번호·통신판매업·주소·이메일·카카오톡 채널 주소·운영시간을 실제 값으로 교체
 - [ ] `.env` 의 `JWT_SECRET` 변경, 데모 계정 비밀번호 변경
 - [ ] git에 올라간 `data/today_taste.sqlite` 의 샘플 개인정보 처리 방침 결정 (추적 해제 또는 교체)
-- [ ] 약관·개인정보처리방침 문구 법률 검토 (현재 초안)
-- [ ] Windows 서버로 배포할 계획이라면 시간대 문제 해결 (Linux/Docker 배포면 불필요)
+- [ ] `site-config.js` 의 `privacyOfficer`(개인정보 보호책임자), `hostingProvider`(서버 호스팅 업체), `policyEffectiveDate`(시행일) 입력
+- [ ] 배포 서버에 HTTPS 적용 (개인정보처리방침 "안전성 확보 조치"에 적혀 있음)
+- [ ] 모임 호스트와 개인정보 처리 위탁 계약서 작성 (개인정보 보호법 제26조, 처리방침 5항)
+- [ ] 운영 DB의 모임별 환불 규정 점검: "당일 환불 불가"처럼 공통 기준보다 불리한 문구가 있으면 운영콘솔에서 지우거나 고치기 (데모 시드는 비움)
 
 ### P1 — 이미지 생성 (AI) · 가이드: [03-image-guide.md](design/03-image-guide.md)
 
@@ -120,12 +132,11 @@
 
 ### P2 — 기능 개선 (운영하며 필요)
 
-- [ ] 800px 이하 운영콘솔(로그인 후) 화면을 실제 기기에서 확인
-- [ ] 참여 토큰 유효 기간 추가 정책 결정: 지금은 출석 처리 때 지우고, 확정·자동취소·환불필요 상태에서는 상태 안내를 위해 남겨 둠. 모임 후 N일 만료 등이 필요하면 결정
+- [ ] 환불 금액 자동 계산 (지금은 공통 기준표를 보고 운영자가 직접 계산)
 
 ### P3 — 작은 개선
 
-- [ ] 운영콘솔 `attendance` API가 `확정` 이외 상태에서도 출석 처리를 허용함 (상태 검사 추가 검토)
+- (없음)
 
 ### 범위 밖 (결정 필요 시 논의)
 

@@ -82,3 +82,15 @@ test('review submit stores publish consent', async () => {
   assert.equal(db.prepare("SELECT r.publish_ok p FROM reviews r JOIN applications a ON a.id=r.application_id WHERE a.name='백승현'").get().p, 1);
   db.close();
 });
+
+test('participation link expires 7 days after the session and cannot be accepted once started', async () => {
+  const db = s.open();
+  const oldS = db.prepare("INSERT INTO schedules(group_id,date,start_time,end_time,place,capacity,fee) VALUES(1,date('now','localtime','-8 days'),'14:00','16:00','지난',3,1000)").run().lastInsertRowid;
+  db.prepare("INSERT INTO applications(group_id,schedule_id,name,age,job,phone,status,participation_token) VALUES(1,?,'만료',25,'직장인','010-6666-0001','확정','expired-token')").run(oldS);
+  const nowS = db.prepare("INSERT INTO schedules(group_id,date,start_time,end_time,place,capacity,fee) VALUES(1,date('now','localtime','-1 minute'),strftime('%H:%M','now','localtime','-1 minute'),'23:59','진행 중',3,1000)").run().lastInsertRowid;
+  db.prepare("INSERT INTO applications(group_id,schedule_id,name,age,job,phone,status,participation_token) VALUES(1,?,'늦은수락',25,'직장인','010-6666-0002','승인','late-token')").run(nowS);
+  db.close();
+  assert.equal((await api(s.base, '/api/public/participation/expired-token')).status, 404);
+  const r = await api(s.base, '/api/public/participation/late-token', { method: 'POST', body: { accept: true } });
+  assert.equal(r.status, 400); assert.match(r.body.error, /시작한 모임/);
+});

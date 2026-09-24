@@ -44,6 +44,7 @@ const audit = (userId, action, entityType, entityId, detail={}) => db.prepare('I
 const notify = (applicationId,type,payload={}) => db.prepare('INSERT INTO notifications(application_id,type,payload,status) VALUES(?,?,?,?)').run(applicationId,type,JSON.stringify(payload),'queued');
 // 이름 가림·직업 목록은 신청자 화면과 같은 규칙을 쓰도록 core.js 에서 가져온다
 const {maskName,JOBS,NAME_MAX} = require('./public/assets/js/core.js');
+const {LINK_VALID_SQL,purgeApplication,runRetention} = require('./lib/retention');
 const scheduleError = b => !/^\d{4}-\d{2}-\d{2}$/.test(String(b.date||''))||!/^\d{2}:\d{2}$/.test(String(b.start_time||''))||!/^\d{2}:\d{2}$/.test(String(b.end_time||'')) ? '날짜는 YYYY-MM-DD, 시간은 HH:MM 형식이어야 합니다.' : !String(b.place||'').trim() ? '장소가 필요합니다.' : !(Number.isInteger(Number(b.capacity))&&Number(b.capacity)>=1) ? '정원은 1명 이상이어야 합니다.' : !(Number(b.fee)>=0) ? '참가비는 0원 이상이어야 합니다.' : null;
 const paymentInfo = () => process.env.PAYMENT_ACCOUNT ? {bank:process.env.PAYMENT_BANK||'',account:process.env.PAYMENT_ACCOUNT,holder:process.env.PAYMENT_HOLDER||''} : null;
 const PUBLIC_REVIEW_WHERE = "r.publish_ok=1 AND r.hidden=0 AND trim(r.text)<>''";
@@ -109,20 +110,21 @@ app.post('/api/public/applications',(req,res)=>{
   if(!/^010-\d{4}-\d{4}$/.test(phone)) return res.status(400).json({error:'휴대폰 번호를 010-0000-0000 형식으로 입력해 주세요.'});
   if(motivation.length<10||motivation.length>300) return res.status(400).json({error:'신청 이유를 10자 이상 300자 이하로 적어주세요.'});
   try{
-    const r=db.prepare(`INSERT INTO applications(group_id,schedule_id,name,age,job,mbti,phone,ad_source,preferred_times,selection_method,motivation)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?)`).run(s.group_id,s.id,name,age,String(b.job).trim(),String(b.mbti||'').toUpperCase().trim(),phone,String(b.ad_source||'직접/기타'),JSON.stringify(b.preferred_times||[]),String(b.selection_method||'직접'),motivation);
+    const r=db.prepare(`INSERT INTO applications(group_id,schedule_id,name,age,job,mbti,phone,ad_source,preferred_times,selection_method,motivation,marketing_ok)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`).run(s.group_id,s.id,name,age,String(b.job).trim(),String(b.mbti||'').toUpperCase().trim(),phone,String(b.ad_source||'직접/기타'),JSON.stringify(b.preferred_times||[]),String(b.selection_method||'직접'),motivation,b.marketing_ok?1:0);
     audit(null,'application_created','application',r.lastInsertRowid,{schedule_id:s.id}); res.json({ok:true,id:r.lastInsertRowid,status:'접수'});
   }catch(e){ if(String(e.message).includes('UNIQUE')) return res.status(409).json({error:'이미 이 일정에 같은 번호로 신청했어요. 신청 현황은 카카오톡 채널로 문의해 주세요.'}); throw e; }
 });
 app.get('/api/public/participation/:token',(req,res)=>{
   const a=db.prepare(`SELECT a.id,a.name,a.status,a.payment_deadline,CAST(ROUND((julianday(a.payment_deadline)-julianday('now','localtime'))*86400) AS INTEGER) payment_seconds_left,g.name group_name,g.cover_url,g.status group_status,s.cancelled,s.date,s.start_time,s.end_time,s.place,s.fee
-    FROM applications a JOIN groups g ON g.id=a.group_id JOIN schedules s ON s.id=a.schedule_id WHERE a.participation_token=?`).get(req.params.token);
+    FROM applications a JOIN groups g ON g.id=a.group_id JOIN schedules s ON s.id=a.schedule_id WHERE a.participation_token=? AND ${LINK_VALID_SQL}`).get(req.params.token);
   if(!a) return res.status(404).json({error:'유효하지 않은 링크입니다.'}); const {cancelled,group_status,...rest}=a; res.json({...rest,schedule_cancelled:!!cancelled||group_status==='폐쇄',payment:paymentInfo()});
 });
 // 수락 후에도 입금 안내를 다시 볼 수 있도록 토큰을 유지한다. 수락/거절 처리는 '승인' 상태에서 한 번만 가능하다.
 app.post('/api/public/participation/:token',(req,res)=>{
-  const a=db.prepare('SELECT a.*,s.fee,s.cancelled,g.status group_status FROM applications a JOIN schedules s ON s.id=a.schedule_id JOIN groups g ON g.id=a.group_id WHERE a.participation_token=?').get(req.params.token);
+  const a=db.prepare(`SELECT a.*,s.fee,s.cancelled,g.status group_status,(datetime(s.date||' '||s.start_time)<=datetime('now','localtime')) started FROM applications a JOIN schedules s ON s.id=a.schedule_id JOIN groups g ON g.id=a.group_id WHERE a.participation_token=? AND ${LINK_VALID_SQL}`).get(req.params.token);
   if(!a||a.status!=='승인') return res.status(400).json({error:'이미 처리되었거나 유효하지 않은 링크입니다.'});
+  if(req.body.accept!==false&&a.started) return res.status(400).json({error:'이미 시작한 모임이라 참여할 수 없어요.'});
   if(req.body.accept!==false&&(a.cancelled||a.group_status==='폐쇄')) return res.status(400).json({error:'일정이 취소되어 참여할 수 없어요. 카카오톡 채널로 문의해 주세요.'});
   if(req.body.accept===false){ db.prepare("UPDATE applications SET status='참여포기',participation_token=NULL WHERE id=?").run(a.id); notify(a.id,'participation_declined'); audit(null,'participation_declined','application',a.id); return res.json({ok:true,status:'참여포기'}); }
   db.prepare("UPDATE applications SET status='입금대기',participation_confirmed_at=datetime('now','localtime'),payment_deadline=datetime('now','localtime','+10 hours') WHERE id=?").run(a.id);
@@ -140,7 +142,7 @@ app.get('/api/admin/applications',auth,(req,res)=>{
   if(req.user.role!=='admin'){ w.push('a.group_id IN (SELECT group_id FROM operator_groups WHERE user_id=?)'); p.push(req.user.id); }
   if(req.query.status){w.push('a.status=?');p.push(req.query.status);} if(req.query.group_id){w.push('a.group_id=?');p.push(Number(req.query.group_id));}
   if(req.query.q){w.push('(a.name LIKE ? OR a.phone LIKE ?)');p.push('%'+req.query.q+'%','%'+req.query.q+'%');}
-  const rows=db.prepare(`SELECT a.*,CAST(ROUND((julianday(a.payment_deadline)-julianday('now','localtime'))*86400) AS INTEGER) payment_seconds_left,g.name group_name,g.icon,s.date,s.start_time,s.end_time,s.capacity,s.fee schedule_fee FROM applications a JOIN groups g ON g.id=a.group_id JOIN schedules s ON s.id=a.schedule_id ${w.length?'WHERE '+w.join(' AND '):''} ORDER BY a.id DESC`).all(...p);
+  const rows=db.prepare(`SELECT a.*,CAST(ROUND((julianday(a.payment_deadline)-julianday('now','localtime'))*86400) AS INTEGER) payment_seconds_left,(datetime(s.date||' '||s.start_time)<=datetime('now','localtime')) started,g.name group_name,g.icon,s.date,s.start_time,s.end_time,s.capacity,s.fee schedule_fee FROM applications a JOIN groups g ON g.id=a.group_id JOIN schedules s ON s.id=a.schedule_id ${w.length?'WHERE '+w.join(' AND '):''} ORDER BY a.id DESC`).all(...p);
   res.json({applications:rows.map(r=>({...r,preferred_times:JSON.parse(r.preferred_times||'[]')}))});
 });
 app.post('/api/admin/applications/:id/approve',auth,(req,res)=>{
@@ -166,8 +168,20 @@ app.post('/api/admin/applications/:id/mark-paid',auth,(req,res)=>{
 });
 app.post('/api/admin/applications/:id/attendance',auth,(req,res)=>{
   const a=db.prepare('SELECT * FROM applications WHERE id=?').get(Number(req.params.id)); if(!a)return res.status(404).json({error:'신청자를 찾을 수 없습니다.'}); if(!canManageGroup(req.user,a.group_id))return res.status(403).json({error:'담당 모임체만 처리할 수 있습니다.'});
+  // 확정 → 참석완료/불참. 잘못 누른 불참만 참석으로 되돌릴 수 있다(참석완료는 평가 링크가 나가므로 되돌리지 않는다)
+  const allowed=req.body.attended?['확정','불참']:['확정']; if(!allowed.includes(a.status))return res.status(400).json({error:req.body.attended?'확정 또는 불참 상태만 참석 처리할 수 있습니다.':'확정 상태만 불참 처리할 수 있습니다.'});
+  if(!db.prepare("SELECT datetime(date||' '||start_time)<=datetime('now','localtime') v FROM schedules WHERE id=?").get(a.schedule_id).v)return res.status(400).json({error:'모임이 시작된 뒤에 출석을 처리할 수 있습니다.'});
   const status=req.body.attended? '참석완료':'불참'; const rt=req.body.attended?token():null; db.prepare('UPDATE applications SET status=?,attendance=?,review_token=?,participation_token=NULL WHERE id=?').run(status,req.body.attended?'참석':'불참',rt,a.id); if(rt) notify(a.id,'review_request',{reviewPath:'/review/'+rt}); audit(req.user.id,'attendance','application',a.id,{status}); res.json({ok:true,status,reviewPath:rt?'/review/'+rt:null});
 });
+
+// 정보주체의 삭제 요청 처리. 입금 기록이 있으면 전자상거래법상 5년 보존 의무가 있어 거절한다(개인정보 보호법 제36조 제1항 단서)
+app.post('/api/admin/applications/:id/purge',auth,adminOnly,(req,res)=>{
+  const a=db.prepare('SELECT * FROM applications WHERE id=?').get(Number(req.params.id)); if(!a) return res.status(404).json({error:'신청자를 찾을 수 없습니다.'});
+  if(a.paid_at) return res.status(400).json({error:'입금 기록이 있는 신청은 법령에 따라 5년간 보존해야 해서 파기할 수 없습니다. 마케팅 수신 동의만 철회할 수 있습니다.'});
+  if(['승인','입금대기','확정'].includes(a.status)) return res.status(400).json({error:'진행 중인 신청은 먼저 거절 처리한 뒤 파기하세요.'});
+  purgeApplication(db,a.id); audit(req.user.id,'purge_application','application',a.id); res.json({ok:true});
+});
+app.post('/api/admin/applications/:id/marketing-off',auth,adminOnly,(req,res)=>{db.prepare('UPDATE applications SET marketing_ok=0 WHERE id=?').run(Number(req.params.id));audit(req.user.id,'marketing_withdrawn','application',req.params.id);res.json({ok:true});});
 
 app.get('/api/admin/groups',auth,(req,res)=>{
   const rows=req.user.role==='admin'?db.prepare('SELECT * FROM groups ORDER BY id DESC').all():db.prepare('SELECT g.* FROM groups g JOIN operator_groups og ON og.group_id=g.id WHERE og.user_id=? ORDER BY g.id DESC').all(req.user.id);
@@ -213,6 +227,9 @@ cron.schedule('* * * * *',()=>{
   const due=db.prepare("SELECT id FROM applications WHERE status='입금대기' AND payment_deadline IS NOT NULL AND datetime(payment_deadline)<=datetime('now','localtime')").all();
   if(!due.length)return;const tx=db.transaction(()=>{for(const a of due){db.prepare("UPDATE applications SET status='자동취소',payment_deadline=NULL WHERE id=? AND status='입금대기'").run(a.id);notify(a.id,'auto_cancelled');}});tx();
 });
+
+// 매일 04:00 개인정보 보유 기간이 지난 신청을 파기하고 만료된 참여 링크를 지운다 (규칙: lib/retention.js)
+cron.schedule('0 4 * * *',()=>{const r=runRetention(db);if(r.purged||r.links)audit(null,'retention','application','',r);});
 
 app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:'서버 오류가 발생했습니다.'});});
 app.listen(PORT,()=>{console.log(`오늘의 취향 서버 실행: http://localhost:${PORT}`);console.log(`DB: ${DB_PATH}`);if(JWT_SECRET==='dev-only-change-me-please')console.warn('경고: 운영 전 JWT_SECRET을 반드시 변경하세요.');});

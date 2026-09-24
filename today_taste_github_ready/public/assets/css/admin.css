@@ -120,6 +120,8 @@ textarea.input { line-height: 1.6; resize: vertical; }
 .loginCard p { margin: 0 0 4px; }
 .loginCard .btn { margin-top: 6px; }
 
+.pc-only-note { display: none; padding: 10px 14px; background: var(--warn-soft); color: var(--warn); font-size: var(--fs-13); }
+.privacy-acts { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 @media (max-width: 800px) {
   .app { grid-template-columns: 1fr; }
   .side { position: sticky; z-index: 10; height: auto; flex-direction: row; align-items: center; gap: 12px; padding: 10px 14px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); }
@@ -134,4 +136,5 @@ textarea.input { line-height: 1.6; resize: vertical; }
   .split { grid-template-columns: 1fr; }
   .panel { position: static; }
   .grid2 { grid-template-columns: 1fr; }
+  .pc-only-note { display: block; }
 }

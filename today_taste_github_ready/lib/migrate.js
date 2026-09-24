@@ -13,7 +13,7 @@ const COLUMNS = {
     ['fee_note', "TEXT NOT NULL DEFAULT ''"], ['host_bio', "TEXT NOT NULL DEFAULT ''"],
     ['host_photo_url', "TEXT NOT NULL DEFAULT ''"], ['place_note', "TEXT NOT NULL DEFAULT ''"],
   ],
-  applications: [['motivation', "TEXT NOT NULL DEFAULT ''"]],
+  applications: [['motivation', "TEXT NOT NULL DEFAULT ''"], ['marketing_ok', 'INTEGER NOT NULL DEFAULT 0'], ['purged_at', 'TEXT']],
   reviews: [['publish_ok', 'INTEGER NOT NULL DEFAULT 0'], ['hidden', 'INTEGER NOT NULL DEFAULT 0']],
 };
 

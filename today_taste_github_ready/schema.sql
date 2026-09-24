@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS applications (
   preferred_times TEXT NOT NULL DEFAULT '[]',
   selection_method TEXT NOT NULL DEFAULT '직접',
   motivation TEXT NOT NULL DEFAULT '',
+  marketing_ok INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT '접수',
   applied_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
   approved_at TEXT,
@@ -85,6 +86,7 @@ CREATE TABLE IF NOT EXISTS applications (
   paid_at TEXT,
   attendance TEXT,
   review_token TEXT UNIQUE,
+  purged_at TEXT,
   UNIQUE(schedule_id, phone)
 );
 
