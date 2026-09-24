@@ -70,6 +70,7 @@
 
 **개발 환경**
 - 에이전트 지침 공유: `.agents/AGENTS.md`, `CLAUDE.md` 가 git으로 추적된다(`.gitignore` 에서 제외 해제). 협업자의 에이전트도 같은 규칙(이 문서 자동 갱신 포함)을 따른다
+- 로컬 개발 서버 실행 스킬 추가: `.agents/skills/start-dev-server/SKILL.md` (Claude Code와 Antigravity 공용, `CLAUDE.md`에 참조 추가)
 - `npm test` 추가 (API·마이그레이션·순수 로직 28개 테스트)
 - 스톡 이미지 10장 추가 (출처: [image-credits.md](design/image-credits.md))
 
