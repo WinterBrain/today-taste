@@ -31,7 +31,5 @@ Thumbs.db
 .idea/
 *.sublime-project
 *.sublime-workspace
-.agents/
 .claude/
-CLAUDE.md
 CLAUDE.local.md
