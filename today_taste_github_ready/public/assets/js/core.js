@@ -85,7 +85,11 @@
     const open = openSchedules(g);
     if (key === 'make') return g.field === '만들기' && open.length > 0;
     if (key === 'learn') return g.field === '배우기' && open.length > 0;
-    if (key === 'weekend') return open.some(s => dayBucket(s.date) !== '평일');
+    if (key === 'weekend') {
+      // 이번 주말 = 오늘부터 이번 주 일요일까지의 토·일
+      const toSunday = (7 - parseDate(today).getDay()) % 7;
+      return open.some(s => dayBucket(s.date) !== '평일' && daysBetween(today, s.date) >= 0 && daysBetween(today, s.date) <= toSunday);
+    }
     if (key === 'weeknight') return open.some(s => dayBucket(s.date) === '평일' && band(s.start_time) === '저녁');
     if (key === 'closing') return open.some(s => Number(s.remaining) === 1 || daysBetween(today, s.date) <= 3);
     return true;

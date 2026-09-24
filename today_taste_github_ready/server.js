@@ -88,15 +88,15 @@ app.post('/api/auth/change-password',auth,async(req,res)=>{
 
 app.get('/api/public/groups',(req,res)=>{
   const groups=db.prepare("SELECT * FROM groups WHERE exposed=1 AND status='운영' ORDER BY id DESC").all();
-  const sched=db.prepare("SELECT s.*, (SELECT COUNT(*) FROM applications a WHERE a.schedule_id=s.id AND a.status IN ('확정','참석완료','평가완료')) confirmed FROM schedules s WHERE s.cancelled=0 AND date(s.date)>=date('now','localtime') ORDER BY s.date,s.start_time").all();
+  const sched=db.prepare("SELECT s.*, (SELECT COUNT(*) FROM applications a WHERE a.schedule_id=s.id AND a.status IN ('확정','참석완료','평가완료')) confirmed FROM schedules s WHERE s.cancelled=0 AND datetime(s.date||' '||s.start_time)>datetime('now','localtime') ORDER BY s.date,s.start_time").all();
   const statRow=db.prepare(`SELECT (SELECT COUNT(*) FROM schedules s WHERE s.group_id=@id AND s.occurred=1 AND s.cancelled=0) sessions_done,(SELECT COUNT(*) FROM applications a WHERE a.group_id=@id AND a.status IN ('참석완료','평가완료')) participants,(SELECT ROUND(AVG(r.satisfaction),1) FROM reviews r JOIN applications a ON a.id=r.application_id WHERE a.group_id=@id AND ${PUBLIC_REVIEW_WHERE}) rating_avg,(SELECT COUNT(*) FROM reviews r JOIN applications a ON a.id=r.application_id WHERE a.group_id=@id AND ${PUBLIC_REVIEW_WHERE}) review_count`);
   const map=new Map(groups.map(g=>[g.id,{...g,exposed:!!g.exposed,schedules:[],stats:statRow.get({id:g.id}),reviews:publicReviews('AND a.group_id=?',[g.id],5)}]));
   sched.forEach(s=>{ if(map.has(s.group_id)) map.get(s.group_id).schedules.push({...s,remaining:Math.max(0,s.capacity-s.confirmed)}); });
   res.json({groups:[...map.values()],reviews:publicReviews('',[],8)});
 });
 app.post('/api/public/applications',(req,res)=>{
-  const b=req.body; const s=db.prepare("SELECT s.*,g.exposed,g.status gstatus,(SELECT COUNT(*) FROM applications a WHERE a.schedule_id=s.id AND a.status IN ('확정','참석완료','평가완료')) confirmed FROM schedules s JOIN groups g ON g.id=s.group_id WHERE s.id=?").get(Number(b.schedule_id));
-  if(!s||s.cancelled||!s.exposed||s.gstatus!=='운영'||s.date<db.prepare("SELECT date('now','localtime') d").get().d) return res.status(400).json({error:'신청할 수 없는 일정입니다.'});
+  const b=req.body; const s=db.prepare("SELECT s.*,g.exposed,g.status gstatus,(datetime(s.date||' '||s.start_time)<=datetime('now','localtime')) started,(SELECT COUNT(*) FROM applications a WHERE a.schedule_id=s.id AND a.status IN ('확정','참석완료','평가완료')) confirmed FROM schedules s JOIN groups g ON g.id=s.group_id WHERE s.id=?").get(Number(b.schedule_id));
+  if(!s||s.cancelled||!s.exposed||s.gstatus!=='운영'||s.started) return res.status(400).json({error:'신청할 수 없는 일정입니다.'});
   if(s.confirmed>=s.capacity) return res.status(400).json({error:'이미 마감된 일정이에요. 다른 일정을 골라주세요.'});
   const name=String(b.name||'').trim(),age=Number(b.age),phone=String(b.phone||'').trim(),motivation=String(b.motivation||'').trim();
   if(!name||!b.job) return res.status(400).json({error:'이름과 직업을 입력해 주세요.'});
@@ -110,14 +110,15 @@ app.post('/api/public/applications',(req,res)=>{
   }catch(e){ if(String(e.message).includes('UNIQUE')) return res.status(409).json({error:'이미 이 일정에 같은 번호로 신청했어요. 신청 현황은 카카오톡 채널로 문의해 주세요.'}); throw e; }
 });
 app.get('/api/public/participation/:token',(req,res)=>{
-  const a=db.prepare(`SELECT a.id,a.name,a.status,a.payment_deadline,CAST(ROUND((julianday(a.payment_deadline)-julianday('now','localtime'))*86400) AS INTEGER) payment_seconds_left,g.name group_name,g.cover_url,s.date,s.start_time,s.end_time,s.place,s.fee
+  const a=db.prepare(`SELECT a.id,a.name,a.status,a.payment_deadline,CAST(ROUND((julianday(a.payment_deadline)-julianday('now','localtime'))*86400) AS INTEGER) payment_seconds_left,g.name group_name,g.cover_url,g.status group_status,s.cancelled,s.date,s.start_time,s.end_time,s.place,s.fee
     FROM applications a JOIN groups g ON g.id=a.group_id JOIN schedules s ON s.id=a.schedule_id WHERE a.participation_token=?`).get(req.params.token);
-  if(!a) return res.status(404).json({error:'유효하지 않은 링크입니다.'}); res.json({...a,payment:paymentInfo()});
+  if(!a) return res.status(404).json({error:'유효하지 않은 링크입니다.'}); const {cancelled,group_status,...rest}=a; res.json({...rest,schedule_cancelled:!!cancelled||group_status==='폐쇄',payment:paymentInfo()});
 });
 // 수락 후에도 입금 안내를 다시 볼 수 있도록 토큰을 유지한다. 수락/거절 처리는 '승인' 상태에서 한 번만 가능하다.
 app.post('/api/public/participation/:token',(req,res)=>{
-  const a=db.prepare('SELECT a.*,s.fee FROM applications a JOIN schedules s ON s.id=a.schedule_id WHERE a.participation_token=?').get(req.params.token);
+  const a=db.prepare('SELECT a.*,s.fee,s.cancelled,g.status group_status FROM applications a JOIN schedules s ON s.id=a.schedule_id JOIN groups g ON g.id=a.group_id WHERE a.participation_token=?').get(req.params.token);
   if(!a||a.status!=='승인') return res.status(400).json({error:'이미 처리되었거나 유효하지 않은 링크입니다.'});
+  if(req.body.accept!==false&&(a.cancelled||a.group_status==='폐쇄')) return res.status(400).json({error:'일정이 취소되어 참여할 수 없어요. 카카오톡 채널로 문의해 주세요.'});
   if(req.body.accept===false){ db.prepare("UPDATE applications SET status='참여포기',participation_token=NULL WHERE id=?").run(a.id); notify(a.id,'participation_declined'); audit(null,'participation_declined','application',a.id); return res.json({ok:true,status:'참여포기'}); }
   db.prepare("UPDATE applications SET status='입금대기',participation_confirmed_at=datetime('now','localtime'),payment_deadline=datetime('now','localtime','+10 hours') WHERE id=?").run(a.id);
   notify(a.id,'payment_instruction',{manual:true}); audit(null,'participation_accepted','application',a.id); const n=db.prepare("SELECT a.payment_deadline,CAST(ROUND((julianday(a.payment_deadline)-julianday('now','localtime'))*86400) AS INTEGER) payment_seconds_left FROM applications a WHERE a.id=?").get(a.id); res.json({ok:true,status:'입금대기',paymentDeadline:n.payment_deadline,paymentSecondsLeft:n.payment_seconds_left,payment:paymentInfo(),fee:a.fee});

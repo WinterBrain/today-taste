@@ -38,6 +38,20 @@ test('payment countdown is computed server-side so client clock/timezone does no
   assert.ok(r.body.payment_seconds_left > 35900 && r.body.payment_seconds_left <= 36000, 'GET seconds ' + r.body.payment_seconds_left);
 });
 
+test('cancelled schedule stops payment requests on the participation link', async () => {
+  const db = s.open();
+  const sid = db.prepare("INSERT INTO schedules(group_id,date,start_time,end_time,place,capacity,fee,cancelled) VALUES(3,date('now','localtime','+5 day'),'19:00','21:00','교동',3,41000,1)").run().lastInsertRowid;
+  db.prepare("INSERT INTO applications(group_id,schedule_id,name,age,job,phone,status,participation_token) VALUES(3,?,'취소대기',26,'직장인','010-7777-0001','입금대기','cancel-token-1')").run(sid);
+  db.prepare("INSERT INTO applications(group_id,schedule_id,name,age,job,phone,status,participation_token) VALUES(3,?,'취소승인',26,'직장인','010-7777-0002','승인','cancel-token-2')").run(sid);
+  db.close();
+  let r = await api(s.base, '/api/public/participation/cancel-token-1');
+  assert.equal(r.status, 200);
+  assert.equal(r.body.schedule_cancelled, true);
+  r = await api(s.base, '/api/public/participation/cancel-token-2', { method: 'POST', body: { accept: true } });
+  assert.equal(r.status, 400);
+  assert.match(r.body.error, /취소/);
+});
+
 test('declining clears the token', async () => {
   const db = s.open();
   db.prepare("UPDATE applications SET status='승인',participation_token='decline-token-1' WHERE name='박서린'").run();

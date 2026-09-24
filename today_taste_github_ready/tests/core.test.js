@@ -76,6 +76,10 @@ test('filters', () => {
   assert.equal(TT.matchesFilter(g('배우기', [full]), 'all', today), true);
   assert.equal(TT.matchesFilter(g('배우기', [full]), 'weekend', today), false);
   assert.equal(TT.nextSchedule(g('x', [full, wedNight, sat])).date, '2026-09-26');
+  const farSat = { date: '2026-10-10', start_time: '14:00', remaining: 3 };
+  assert.equal(TT.matchesFilter(g('만들기', [farSat]), 'weekend', today), false, '"이번 주말" must not match a weekend weeks away');
+  assert.equal(TT.matchesFilter(g('만들기', [{ date: '2026-09-27', start_time: '10:00', remaining: 1 }]), 'weekend', today), true);
+  assert.equal(TT.matchesFilter(g('만들기', [{ date: '2026-09-27', start_time: '10:00', remaining: 1 }]), 'weekend', '2026-09-27'), true, 'Sunday itself counts');
 });
 
 test('deadline from server seconds uses the client clock', () => {

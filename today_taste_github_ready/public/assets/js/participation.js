@@ -24,7 +24,9 @@
   function render() {
     const d = data;
     clearInterval(timer);
-    if (d.status === '승인') {
+    if (d.schedule_cancelled && ['승인', '입금대기'].includes(d.status)) {
+      box.innerHTML = page('이 일정은 취소됐어요', '<p class="muted">입금하지 않으셔도 돼요. 이미 입금하셨다면 전액 돌려드려요. 다른 일정을 골라 다시 신청해 주세요.</p><a class="btn btn-secondary btn-block" href="/">다른 일정 보기</a>');
+    } else if (d.status === '승인') {
       box.innerHTML = `<section class="link-body">${head(d)}<h1 class="serif">${esc(d.name)}님, 신청이 승인됐어요</h1>
         <p class="muted">참여할지 알려주세요. 참여를 누르면 아래 계좌로 10시간 안에 입금해 주시면 돼요.</p>${payBox(d, false)}${contact()}
         <div class="bottom-bar stack"><button class="btn btn-primary btn-block" data-act="accept">참여할게요</button><button class="btn btn-secondary btn-block" data-act="decline">이번엔 참여하지 않을게요</button></div></section>`;

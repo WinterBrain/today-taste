@@ -1,4 +1,6 @@
 'use strict';
+// server.js 와 같은 시간대 설정. 테스트 프로세스가 직접 넣는 SQL 시각도 서버와 같은 기준이 되게 한다.
+process.env.TZ = 'Asia/Seoul';
 const { spawn, execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');

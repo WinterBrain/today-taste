@@ -48,6 +48,17 @@ test('valid application is accepted with motivation stored', async () => {
   db.close();
 });
 
+test('a session that already started today is neither listed nor bookable', async () => {
+  const db = s.open();
+  const id = db.prepare("INSERT INTO schedules(group_id,date,start_time,end_time,place,capacity,fee) VALUES(1,date('now','localtime','-1 minute'),strftime('%H:%M','now','localtime','-1 minute'),'23:59','지난 회차',3,39000)").run().lastInsertRowid;
+  db.close();
+  const groups = (await api(s.base, '/api/public/groups')).body.groups;
+  assert.ok(!groups.flatMap(g => g.schedules).some(x => x.id === id), 'started session must not be listed');
+  const r = await api(s.base, '/api/public/applications', { method: 'POST', body: validBody(id, '010-9999-0006') });
+  assert.equal(r.status, 400);
+  assert.match(r.body.error, /신청할 수 없는 일정/);
+});
+
 test('rejects invalid applications', async () => {
   const g = (await api(s.base, '/api/public/groups')).body.groups.find(x => x.tag === '향수');
   const sid = g.schedules[0].id;
