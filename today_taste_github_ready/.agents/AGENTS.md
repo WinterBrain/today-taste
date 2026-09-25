@@ -60,7 +60,7 @@ npm test                      # node:test. 임시 DB로 시드+서버를 띄워 
   - `admin.js`: 운영콘솔(PC 전용, 800px 이하에서는 PC 권장 안내만 표시). `participation.js`, `review.js`: 토큰 링크 페이지(서버가 `/participation/:token`, `/review/:token` 으로 HTML 서빙).
 - CSS: `tokens.css`(유일한 기준) → `app.css`(신청자·링크 페이지) / `admin.css`(콘솔). 규칙은 아래 "디자인 작업 규칙".
 - 모임체 상세 정보(진행 순서, 준비물, FAQ)는 `groups` 테이블의 `*_json` TEXT 컬럼에 JSON 문자열로 저장된다.
-- 사진: DB에는 주소만 저장한다. 총괄자가 운영콘솔에서 올린 사진은 `POST /api/admin/uploads`(`lib/upload.js`, JPG·PNG·WebP 5MB 이하, 파일 시그니처로 검사)가 DB 파일 옆 `uploads/`(기본 `data/uploads/`, git 제외)에 저장하고 `/uploads/파일명` 으로 제공한다. `public/assets/img/groups`·`hosts` 는 데모 시연용 더미 사진이다(운영 전 정리, `docs/STATUS.md` P0).
+- 사진: DB에는 주소만 저장한다. 총괄자가 운영콘솔에서 올린 사진은 `POST /api/admin/uploads`(`lib/upload.js`, JPG·PNG·WebP 5MB 이하, 파일 시그니처로 검사)가 DB 파일 옆 `uploads/`(기본 `data/uploads/`, git 제외)에 저장하고 `/uploads/파일명` 으로 제공한다. **백업·서버 이전·DB 교체 작업 시 `uploads/` 를 DB와 함께 다룬다**(git에 없어서 빠뜨리면 사진이 사라진다). `public/assets/img/groups`·`hosts` 는 데모 시연용 더미 사진이다(운영 전 정리, `docs/STATUS.md` P0).
 
 ## 디자인 작업 규칙 (화면·CSS·문구를 고칠 때 반드시)
 
