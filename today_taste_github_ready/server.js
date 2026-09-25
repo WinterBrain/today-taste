@@ -28,6 +28,10 @@ db.pragma('foreign_keys = ON');
 db.pragma('journal_mode = WAL');
 // schema.sql 실행 + 기존 DB에 없는 컬럼 추가 (컬럼 목록은 lib/migrate.js 한 곳에서 관리)
 require('./lib/migrate').migrate(db);
+// 운영콘솔에서 올린 사진은 DB 옆 uploads/ 에 저장한다 (git 추적 안 함, Docker 에서는 ./data 볼륨에 보존)
+const UPLOAD_DIR = path.join(path.dirname(DB_PATH),'uploads');
+fs.mkdirSync(UPLOAD_DIR, {recursive:true});
+const {UPLOAD_MAX_BYTES,imageExt,saveImage} = require('./lib/upload');
 
 
 const app = express();
@@ -35,6 +39,7 @@ if(process.env.TRUST_PROXY==='1') app.set('trust proxy',1);
 app.use(express.json({limit:'1mb'}));
 app.use(express.urlencoded({extended:false}));
 app.use(express.static(path.join(__dirname,'public')));
+app.use('/uploads',express.static(UPLOAD_DIR,{index:false,setHeaders:r=>r.set('X-Content-Type-Options','nosniff')}));
 
 const nowSql = () => db.prepare("SELECT datetime('now','localtime') AS now").get().now;
 const token = () => crypto.randomBytes(24).toString('hex');
@@ -189,6 +194,9 @@ app.get('/api/admin/groups',auth,(req,res)=>{
 });
 const GROUP_COLS='field,tag,name,icon,place,duration,fee,exposed,status,tagline,intro,host_name,host_role,order_json,prep_json,refund_policy,faq_json,cover_url,gallery_json,for_whom_json,includes_json,fee_note,host_bio,host_photo_url,place_note';
 const groupValues=(b,g={})=>[b.field,b.tag||'',b.name,b.icon||g.icon||'✨',b.place||'',b.duration||'',Number(b.fee||0),b.exposed===false||b.exposed===0?0:1,b.status||'운영',b.tagline||'',b.intro||'',b.host_name||'',b.host_role||'',JSON.stringify(b.order||parseJson(g.order_json,[])),JSON.stringify(b.prep||parseJson(g.prep_json,[])),b.refund_policy||'',JSON.stringify(b.faq||parseJson(g.faq_json,[])),b.cover_url||'',JSON.stringify(b.gallery||parseJson(g.gallery_json,[])),JSON.stringify(b.for_whom||parseJson(g.for_whom_json,[])),JSON.stringify(b.includes||parseJson(g.includes_json,[])),b.fee_note||'',b.host_bio||'',b.host_photo_url||'',b.place_note||''];
+// 사진 업로드: 요청 본문이 파일 그대로(Content-Type 은 image/*). 형식은 파일 앞부분으로 다시 확인한다
+const rawImage=(req,res,next)=>express.raw({type:()=>true,limit:UPLOAD_MAX_BYTES})(req,res,e=>e?res.status(e.status===413?413:400).json({error:e.status===413?'사진은 5MB 이하만 올릴 수 있어요. 크기를 줄여서 다시 올려 주세요.':'사진을 읽지 못했어요. 다시 올려 주세요.'}):next());
+app.post('/api/admin/uploads',auth,adminOnly,rawImage,(req,res)=>{const ext=imageExt(req.body);if(!ext)return res.status(400).json({error:'JPG·PNG·WebP 사진만 올릴 수 있어요. 다른 형식은 변환해서 올려 주세요.'});const f=saveImage(UPLOAD_DIR,req.body,ext);audit(req.user.id,'upload_image','upload',f.name,{size:req.body.length});res.json({ok:true,url:f.url});});
 app.post('/api/admin/groups',auth,adminOnly,(req,res)=>{
   const b=req.body;if(!b.name||!b.field)return res.status(400).json({error:'모임체명과 분야가 필요합니다.'}); const r=db.prepare(`INSERT INTO groups(${GROUP_COLS}) VALUES(${GROUP_COLS.split(',').map(()=>'?').join(',')})`).run(...groupValues(b)); audit(req.user.id,'create_group','group',r.lastInsertRowid);res.json({ok:true,id:r.lastInsertRowid});
 });
