@@ -31,7 +31,7 @@
 | 디자인 토큰 | 색·글꼴·글자 크기·반경·z-index·**여백(`--sp-숫자`)** 은 `public/assets/css/tokens.css` 에서만 정합니다. `app.css`·`admin.css` 에 값을 직접 쓰면 `npm test` 가 실패합니다. 토큰 목록과 견본은 **`/styleguide.html`** (서버 실행 후 열기). 사람·에이전트 공통 규칙은 `.agents/AGENTS.md` 의 "디자인 작업 규칙" | 화면을 고치기 전에 그 규칙을 읽고, 새 값이 필요하면 tokens.css 에 이름·값·설명 주석을 한 줄로 추가 |
 | 사진 업로드 | 총괄자가 모임체 폼의 "사진 올리기"로 올린 사진은 **DB 파일 옆 `uploads/`**(기본 `data/uploads/`, Docker에서는 `./data` 볼륨)에 저장되고 `/uploads/파일명` 으로 보입니다. git에는 올라가지 않습니다. API: `POST /api/admin/uploads` (본문 = 파일 그대로, JPG·PNG·WebP 5MB 이하, 총괄자만) → `{url}` | 서버 백업 시 **DB와 `data/uploads/` 를 함께** 백업합니다. 다른 PC로 DB를 옮기면 업로드 사진도 같이 옮겨야 보입니다 |
 | 테스트 | `npm test` (Node 내장 test runner, 새 의존성 없음). 임시 DB로 서버를 띄워 API를 검증합니다 | PR 전에 실행 |
-| 데모 DB | git에 올라간 `data/today_taste.sqlite` 는 **다시 만들지 않았습니다**(사용자 데이터가 있을 수 있음). 새 데모 콘텐츠(사진·후기)를 보려면 임시 DB로 `DB_PATH=./data/demo.sqlite npm run seed:demo:reset` | 화면 확인은 항상 임시 DB로 |
+| 데모 DB | git에 올라간 `data/today_taste.sqlite` 는 초기 버전이라 **사진·새 후기가 없습니다**(다시 만들지 않음). 데모 화면은 **`npm run dev:demo`** 로 봅니다: 임시 DB `data/dev_temp.sqlite` 가 없거나, `scripts/seed-demo.js` 가 바뀌었거나, 만든 날이 오늘이 아니면 데모 데이터로 새로 만들고 서버를 켭니다(`-- --keep` 이면 유지). "개발 서버 실행" 스킬도 이 명령을 씁니다 | 클론 후 `npm install` → `npm run dev:demo`. `npm start` 로는 사진이 안 보입니다 |
 
 ### 알려진 문제
 
@@ -46,6 +46,8 @@
 - 서버/API: `POST /api/admin/uploads` 추가(총괄자 전용). 새 패키지 없이 `express.raw` 로 파일을 받고, `lib/upload.js` 가 파일 앞부분으로 JPG·PNG·WebP 인지 확인(SVG 등 거절), 무작위 이름으로 DB 옆 `uploads/` 에 저장, `/uploads/` 로 제공(`nosniff`). 5MB 초과는 413, 감사 로그 `upload_image`
 - 운영콘솔: 모임체 폼의 대표 사진·추가 사진(여러 장)·호스트 사진 칸에 "사진 올리기" 버튼. 올리면 주소 칸이 채워지고, 저장을 눌러야 반영. 주소 직접 입력도 그대로 가능
 - 개발 환경: `.gitignore` 에 `data/uploads/` 추가. 테스트 `tests/upload.test.js` (48/48 통과)
+- 개발 환경: `npm run dev:demo` (`scripts/dev-demo.js`) 추가 — 다른 컴퓨터에서 클론해도 데모 화면(사진 포함)이 같게 보이도록 임시 DB를 자동으로 새로 만듦. 시드 스크립트 해시·날짜는 `data/dev_temp.sqlite.seed.json`(git 제외)에 기록. `start-dev-server` 스킬·README·AGENTS 를 이 명령 기준으로 갱신
+- 운영콘솔: 사이드바·로그인 화면에 "홈페이지로 가기" 링크
 
 ### 2026-09-24 — 프론트엔드 개편과 운영 기능 보강 (`feat/redesign`, 미병합)
 

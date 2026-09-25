@@ -13,13 +13,14 @@ npm install
 cp .env.example .env          # JWT_SECRET 변경 필요 (PORT, DB_PATH, TRUST_PROXY)
 npm start                     # node server.js → http://localhost:3000 (운영콘솔: /admin.html)
 npm run dev                   # node --watch server.js
+npm run dev:demo              # 화면 확인·시연용: 임시 DB(data/dev_temp.sqlite)를 필요 시 데모로 새로 만들고 --watch 실행 (-- --keep 이면 유지)
 npm run seed:demo             # 빈 DB에 데모 데이터 삽입
 npm run seed:demo:reset       # 기존 DB를 데모 데이터로 완전 초기화
 docker compose up -d --build  # Docker 배포 (DB는 ./data 볼륨에 보존)
 npm test                      # node:test. 임시 DB로 시드+서버를 띄워 API·순수 로직(core.js)을 검증
 ```
 
-린트·빌드 도구는 없다. 화면 확인은 브라우저로 하되 **반드시 임시 DB**(`DB_PATH=<임시경로> npm run seed:demo:reset` 후 같은 DB_PATH로 서버 실행)를 쓴다. `data/today_taste.sqlite` 는 git 추적 대상이고 cron이 매분 상태를 바꾼다.
+린트·빌드 도구는 없다. 화면 확인은 브라우저로 하되 **반드시 임시 DB**를 쓴다: `npm run dev:demo`(`scripts/dev-demo.js`, 데모 DB가 없거나 `seed-demo.js` 가 바뀌었거나 날짜가 지나면 자동 재생성) 또는 `DB_PATH=<임시경로> npm run seed:demo:reset` 후 같은 DB_PATH로 서버 실행. `data/today_taste.sqlite` 는 git 추적 대상이고 cron이 매분 상태를 바꾼다.
 
 데모 계정(seed): 총괄자 `tasteadmin` / `Taste!2026`, 운영자 `seoyun`·`minjae`·`jiwoo` / `TasteOp!2026`. 사용자가 0명인 DB에서는 운영콘솔 첫 접속 시 `/api/auth/bootstrap` 으로 초기 총괄자를 생성한다.
 
