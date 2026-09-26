@@ -108,22 +108,15 @@
     const next = TT.nextSchedule(g);
     const when = next ? `${TT.fmtDateShort(next.date)} ${TT.timeLabel(next.start_time)}` : '다음 일정 준비 중';
     const seat = next ? UI.seats(TT.seatInfo(next.capacity, next.remaining)) : '';
-    const photo = `<div class="gcard-photo">${UI.cover(g.cover_url, g)}<div class="gcard-badges">${cardBadge(g)}</div></div>`;
-    // 가로로 넘기는 카드(이번 주·다른 모임)는 테두리 있는 틀 안에 날짜를 먼저 보여준다
-    if (wide) return `<a class="gcard is-wide${next ? '' : ' is-closed'}" href="#/g/${g.id}">${photo}
+    // 모든 모임 카드는 같은 구조: 분야·장소 → 모임 이름 → 날짜 → (선) 가격·남은 자리. 가로 카드(is-wide)는 폭과 사진 비율만 다르다
+    return `<a class="gcard${wide ? ' is-wide' : ''}${next ? '' : ' is-closed'}" href="#/g/${g.id}">
+      <div class="gcard-photo">${UI.cover(g.cover_url, g)}<div class="gcard-badges">${cardBadge(g)}</div></div>
       <div class="gcard-body">
-        <div class="gcard-when num">${when}</div>
-        <h3 class="gcard-title">${esc(g.name)}</h3>
         <div class="gcard-meta">${esc(g.field)} · ${esc(g.place)}</div>
+        <h3 class="gcard-title">${esc(g.name)}</h3>
+        <div class="gcard-when num">${when}</div>
         <div class="gcard-foot"><b class="num">${won(g.fee)}</b>${seat}</div>
       </div>
-    </a>`;
-    return `<a class="gcard${next ? '' : ' is-closed'}" href="#/g/${g.id}">
-      ${photo}
-      <div class="gcard-meta">${esc(g.field)} · ${esc(g.place)}</div>
-      <h3 class="gcard-title">${esc(g.name)}</h3>
-      <div class="gcard-when">${when}</div>
-      <div class="gcard-foot"><b class="num">${won(g.fee)}</b>${seat}</div>
     </a>`;
   }
   function reviewCard(r, { showGroup = true } = {}) {

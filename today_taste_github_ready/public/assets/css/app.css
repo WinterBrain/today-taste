@@ -120,28 +120,25 @@ body { background: var(--bg-sunken); }
 .find-entry span { font-size: var(--fs-13); color: var(--ink-3); }
 .find-entry .find-go { display: inline-flex; align-items: center; font-size: var(--fs-14); color: var(--accent-ink); font-weight: 600; white-space: nowrap; }
 
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-32) var(--sp-16); }
-.gcard { display: block; min-width: 0; }
-.gcard.is-wide { width: 72%; border: 1px solid var(--line); border-radius: var(--r-btn); overflow: hidden; background: var(--bg); }
-.gcard.is-wide .gcard-photo { border-radius: unset; aspect-ratio: 16 / 10; }  /* 모서리는 바깥 틀이 자른다 */
-.gcard-body { padding: var(--sp-12) var(--sp-14) var(--sp-14); }
-.gcard.is-wide .gcard-when { font-size: var(--fs-14); font-weight: 700; color: var(--ink); }
-.gcard.is-wide .gcard-title { margin: var(--sp-4) 0 var(--sp-2); }
-.gcard.is-wide .gcard-meta { margin-top: 0; }
-.gcard.is-wide .gcard-foot { margin-top: var(--sp-10); padding-top: var(--sp-10); border-top: 1px solid var(--line); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-16) var(--sp-12); }
+/* 모임 카드: 틀 안에 사진 → 분야·장소 → 모임 이름 → 날짜 → (선) 가격·남은 자리. 두 칸 목록과 가로 목록이 같은 모양 */
+.gcard { display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--line); border-radius: var(--r-btn); overflow: hidden; background: var(--bg); }
+.gcard.is-wide { width: 72%; }
 .hscroll:has(> .gcard.is-wide) { gap: var(--sp-16); }
-.gcard-photo { position: relative; border-radius: var(--r-photo); overflow: hidden; aspect-ratio: 4 / 3; background: var(--bg-sunken); }
+.gcard-photo { position: relative; aspect-ratio: 4 / 3; background: var(--bg-sunken); }
+.gcard.is-wide .gcard-photo { aspect-ratio: 16 / 10; }
 .gcard-photo img, .gcard-photo .cover-fallback { width: 100%; height: 100%; object-fit: cover; }
 .gcard-photo .cover-fallback .heading { font-size: var(--fs-20); }
 .gcard-badges { position: absolute; top: 8px; left: 8px; display: flex; gap: var(--sp-4); }
 .gcard.is-closed .gcard-photo img { filter: grayscale(.6) opacity(.7); }
-.gcard-meta { margin-top: var(--sp-10); font-size: var(--fs-13); color: var(--ink-3); }
-.gcard-title { margin: var(--sp-2) 0 var(--sp-4); font-size: var(--fs-15); font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.gcard-when { font-size: var(--fs-13); color: var(--ink-2); }
-.gcard-foot { margin-top: var(--sp-6); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4) var(--sp-6); flex-wrap: wrap; }
+.gcard-body { flex: 1; display: flex; flex-direction: column; padding: var(--sp-12); }
+.gcard.is-wide .gcard-body { padding: var(--sp-12) var(--sp-14) var(--sp-14); }
+.gcard-meta { font-size: var(--fs-12); color: var(--ink-3); }
+.gcard-title { margin: var(--sp-2) 0 var(--sp-6); font-size: var(--fs-15); font-weight: 700; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.gcard-when { margin-bottom: var(--sp-12); font-size: var(--fs-13); font-weight: 600; color: var(--ink-2); }
+/* 가격 줄은 카드 바닥에 붙여 두 칸 목록에서 높이가 달라도 나란히 맞춘다. 좁으면 좌석이 다음 줄로 */
+.gcard-foot { margin-top: auto; padding-top: var(--sp-10); border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4) var(--sp-6); flex-wrap: wrap; }
 .gcard-foot > b { font-size: var(--fs-15); }
-/* 두 칸 목록은 폭이 좁아 가격과 좌석을 두 줄로 나눈다 (한 줄이면 옆 카드 글자와 붙어 보임) */
-.grid2 .gcard-foot { display: grid; justify-content: start; gap: var(--sp-2); }
 
 .rcard { width: 78%; padding: var(--sp-16); border-radius: var(--r-btn); background: var(--bg-sunken); display: grid; gap: var(--sp-8); align-content: start; }
 .rcard-stars { display: inline-flex; align-items: center; gap: var(--sp-4); font-size: var(--fs-14); }
