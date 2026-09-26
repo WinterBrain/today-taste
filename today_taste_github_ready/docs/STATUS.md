@@ -15,7 +15,7 @@
 | 구분 | 내용 | 해야 할 일 |
 |---|---|---|
 | 서비스 컨셉 문서 | 서비스 컨셉(진행자 1 + 참여자 2 = 최대 3명, 원데이 클래스, 20대 중심·30대까지, 취향 발견의 시작점)과 기능·디자인 결정 기준을 **`docs/CONCEPT.md`** 에 정리했습니다. AGENTS.md 개요에도 요약이 있습니다 | 기능 추가·확장·디자인·문구를 정하기 전에 읽고, 맞지 않으면 합의한 뒤 문서부터 고칩니다 |
-| 글꼴 (2026-09-26) | 명조(Noto Serif KR)를 없애고 **Pretendard 하나**로 통일했습니다. CSS 클래스 **`.serif` → `.heading`**, 토큰 **`--serif` → `--font-logo`**(로고 전용). 로고 글꼴 `public/assets/fonts/taste-wordmark.woff2` 는 나눔스퀘어라운드에서 "오늘의 취향" 여섯 글자만 남긴 수정본(OFL, 라이선스 파일 같은 폴더) | 작업 중인 코드에 `.serif`·`--serif` 가 있으면 바꿉니다. 로고 글자를 바꾸면 글꼴 파일을 다시 만들어야 합니다 |
+| 글꼴·로고 (2026-09-26) | 명조(Noto Serif KR)를 없애고 **Pretendard 하나**로 통일했습니다. CSS 클래스 **`.serif` → `.heading`**. 로고는 글꼴이 아니라 **SVG 글자**이고, 화면에는 태그라인("대구 청년의 취미 놀이터")을 위에 얹은 묶음 **`TT.LOGO_HTML`(`core.js`, 스타일은 `tokens.css` 의 `.logo-lockup`)** 을 넣습니다. 이 묶음은 신청자 앱·참여 확인/후기 페이지(`data-logo` 자리를 `ui.js` 가 채움)·운영콘솔이 함께 씁니다. 파비콘 `icons/favicon.svg`·`apple-touch-icon.png` 은 주홍 타일 + 흰 별표로 바뀌었습니다 | 작업 중인 코드에 `.serif`·`--serif`·`.wordmark .mark` 가 있으면 바꿉니다. 로고·태그라인을 고칠 때는 `core.js` 의 `LOGO_SVG`·`LOGO_TAGLINE` 만 고치고, 공유 미리보기 `icons/og.jpg` 도 다시 만듭니다(`docs/design/image-credits.md` 의 방법) |
 | 회차 정원 기준 | 한 테이블 구성이 **"진행자 1명 + 참여자 2명 = 총 3명"**으로 명확화됨에 따라 회차 신청 정원(`capacity`) 기본값이 **2명**으로 변경되었습니다 (`schema.sql`, `server.js`, `admin.js`, `scripts/seed-demo.js`). 화면에서도 참여 정원 2명(총 3명)으로 표시됩니다 | 신규 일정 등록 시 기본 정원이 2명으로 적용됩니다 |
 | DB 스키마 | `groups` 에 `cover_url, gallery_json, for_whom_json, includes_json, fee_note, host_bio, host_photo_url, place_note`, `applications` 에 `motivation, marketing_ok, purged_at`, `reviews` 에 `publish_ok, hidden` 컬럼 추가 | 없음 — 서버를 켜면 기존 DB에 자동으로 추가됩니다 |
 | 마이그레이션 위치 | 컬럼 추가 목록이 `lib/migrate.js` 의 `COLUMNS` 한 곳으로 모였습니다 (전에는 server.js와 seed-demo.js에 복제) | 앞으로 컬럼을 추가할 때는 `lib/migrate.js` 와 `schema.sql` 만 고칩니다 |
@@ -50,6 +50,8 @@
 - 서버/API: 일정 생성 시 기본 정원 fallback을 2명으로 수정 (`server.js`)
 - 신청자 화면: '퇴근 후' 직장인 한정 문구를 일상 속 취향 모임으로 변경, 진행자 1명 + 참여자 2명 구조로 홈 배너·약속·FAQ·모임 상세·이용 안내 문구 전면 개편 (`app.js`, `index.html`)
 - 운영콘솔: 일정 등록 모달의 기본 정원을 2명으로 변경 (`admin.js`)
+- 로고·브랜드: 명조 제거(Pretendard 통일), 글자 로고를 SVG로 새로 그림("오"의 ㅇ = 해, "취"의 ㅊ = 별표, Gemini 시안을 좌표로 옮김), 태그라인 "대구 청년의 취미 놀이터" 추가. `core.js` 의 `TT.LOGO_HTML` 하나를 신청자 앱·참여 확인/후기 페이지·운영콘솔이 함께 씀. 파비콘·홈 화면 아이콘(주홍 타일 + 흰 별표), 공유 미리보기 `og.jpg` 교체
+- 문서: 서비스 컨셉 `docs/CONCEPT.md` 추가(기능·디자인 결정 기준)
 - 개발 환경: 데모 시드 데이터 정원(2명) 및 관련 소개 문구 일치화 (`scripts/seed-demo.js`), 테스트 전체 통과 (48/48)
 
 ### 2026-09-25 — 사진 업로드 (`feat/redesign`, 미병합)
@@ -159,9 +161,10 @@
 - [ ] 운영 DB의 모임별 환불 규정 점검: "당일 환불 불가"처럼 공통 기준보다 불리한 문구가 있으면 운영콘솔에서 지우거나 고치기 (데모 시드는 비움)
 - [ ] **데모용 더미 사진 정리**: `public/assets/img/groups/`(모임 커버·갤러리)와 `img/hosts/`(호스트)는 외부 시연용 AI·스톡 사진입니다. 다른 컴퓨터에서도 시연 화면이 보이도록 지금은 git에 둡니다. 실제 사진은 운영콘솔 "사진 올리기"로 올리면 `data/uploads/` 에 저장됩니다(2026-09-25 추가). 운영 전에 더미 사진을 운영 배포에서 빼야 합니다: 모든 모임의 사진을 실제 사진으로 바꾼 뒤 더미 사진을 데모 전용 폴더로 옮기거나 삭제하고, 운영 DB의 `cover_url`·`gallery_json`·`host_photo_url` 이 더미 경로를 가리키지 않는지 확인. `img/brand/`(로고·배너·OG)는 사이트 자산이라 그대로 둡니다.
 
-### P1 — 이미지 생성 (AI) · 가이드: [03-image-guide.md](design/03-image-guide.md)
+### P1 — 이미지 생성 (AI)
 
-생성 방법: Claude에게 "agy로 이미지 만들어줘"라고 요청하면 Antigravity CLI로 생성 → 검토 → 적용까지 진행합니다(스킬 `agy-collaborator`). 이미지 모델 한도 때문에 **한 번에 2~3장씩, 순서대로** 요청합니다. CLI 한도가 소진되면 Claude가 자동화 크롬(superpowers-chrome, 별도 프로필에 Google 로그인 필요)으로 Gemini 웹에서 생성할 수 있습니다(워터마크는 크롭으로 제외). 사진이 없는 자리는 지금 모임명 글자나 이니셜로 대체돼 있습니다. 만든 파일을 `public/assets/img/` 에 넣고 운영콘솔 모임체 폼의 사진 주소 칸에 경로를 입력하면 바로 반영됩니다. 넣은 뒤에는 [image-credits.md](design/image-credits.md) 에 기록합니다.
+
+생성 방법: Claude에게 "제미나이로 이미지 만들어줘"라고 요청하면 **Gemini 웹(gemini.google.com)을 자동화 크롬으로 조작해** 생성 → 검토 → 크롭 → 적용까지 진행합니다(Claude 스킬 `agy-collaborator` 에 절차가 있음). CLI(`agy`)는 이미지 한도가 작아 이미지 생성에 쓰지 않습니다(2026-09-26 결정). 자동화 크롬은 별도 프로필이라 처음 한 번 Google 로그인이 필요하고, 결과물 오른쪽 아래 워터마크는 크롭으로 뺍니다. 사진이 없는 자리는 지금 모임명 글자나 이니셜로 대체돼 있습니다. 만든 파일을 `public/assets/img/` 에 넣고 운영콘솔 모임체 폼의 사진 주소 칸에 경로를 입력하면 바로 반영됩니다. 넣은 뒤에는 [image-credits.md](design/image-credits.md) 에 기록합니다.
 
 - 가이드의 이미지 슬롯은 모두 채웠습니다. 운영 전에 호스트 사진 5장(`img/hosts/*.jpg`, AI 생성)을 실제 호스트 사진으로 바꿉니다(운영콘솔 모임체 폼의 호스트 사진 칸). 더미 사진 정리는 P0 "데모용 더미 사진 정리" 항목을 따릅니다.
 

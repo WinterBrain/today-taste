@@ -79,5 +79,8 @@
     toast('복사했어요');
   }
 
+  // 링크 페이지 헤더의 로고 자리(data-logo)를 채운다
+  document.querySelectorAll("[data-logo]").forEach(el => { el.innerHTML = TT.LOGO_HTML; });
+
   window.UI = { icon, seats, cover, api, toast, openSheet, closeSheet, copy };
 })();

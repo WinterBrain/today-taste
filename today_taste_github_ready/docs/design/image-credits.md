@@ -27,7 +27,7 @@ Google Antigravity CLI(`agy` 1.2.9)의 내장 `generate_image` 도구(모델 `ge
 | img/hosts/{perfume,drawing,coffee,leather,film}.jpg | 호스트 사진 (§4.8 H1~H5) | 2026-09-24 | **Gemini 웹 앱**에서 생성(CLI 한도 소진). 1024×1024 원본을 화면 캡처 → 오른쪽 아래 워터마크를 피해 700×700 크롭 → 400×400. 필름 사진은 뒤쪽 손님 얼굴이 나오는 윗부분을 잘라냄 |
 | img/brand/home-banner.jpg | 홈 배너 (§4.1) | 2026-09-24 | Gemini 웹. 1024×637 원본에서 워터마크 쪽을 빼고 880×550 크롭(스톡 r8nUg6eXUxY 대체) |
 | img/brand/guide.jpg | 이용 안내 헤더 (§4.2) | 2026-09-24 | Gemini 웹. 1024×687 원본에서 위쪽 턱선·오른쪽 워터마크를 빼고 870×580 크롭 |
-| icons/og.jpg | 공유 미리보기 (§4.3) | 2026-09-24 | Gemini 웹 배경(1024×572)을 1200×630에 채우고 오른쪽 벽에 로고·워드마크(Noto Serif KR)·설명(Noto Sans KR)을 HTML로 합성해 캡처. 벽 위 워터마크는 바로 위 벽 질감으로 덮음 |
+| icons/og.jpg | 공유 미리보기 (§4.3) | 2026-09-26 다시 합성 | 배경은 그대로, 오른쪽 벽에 태그라인·새 SVG 로고·홈 배너 문구(Pretendard)를 캔버스로 그려 1200×630 JPEG로 저장(화면 캡처는 창 배율에 따라 크기가 달라져서 쓰지 않음). 로고를 바꾸면 다시 만든다. 이전 기록: 2026-09-24 Gemini 웹 배경(1024×572)을 1200×630에 채우고 오른쪽 벽에 로고·워드마크(Noto Serif KR)·설명(Noto Sans KR)을 HTML로 합성해 캡처. 벽 위 워터마크는 바로 위 벽 질감으로 덮음 |
 | img/groups/{perfume-3,perfume-4,coffee-3,leather-3}.jpg | 갤러리 보충 (§4.4, §4.6) | 2026-09-24 | Gemini 웹. 워터마크를 피해 4:3은 840~880px 폭, 1:1은 720px로 크롭 |
 | img/groups/{film-cover,film-1,film-2,film-3}.jpg | 필름 커버·갤러리 (§4.7) | 2026-09-24 | Gemini 웹. film-3은 1차 결과(인화 사진 속 한글 명패·뒤쪽 책 글자·손님 얼굴)를 탈락시키고 탁자만 보이는 구도로 재생성 |
 

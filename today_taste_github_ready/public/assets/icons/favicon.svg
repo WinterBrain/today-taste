@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- 오늘의 취향: '향'의 ㅎ을 뚜껑 덮인 옹기로, 안에 오늘의 취향(주홍)을 담았다 -->
-  <rect width="64" height="64" rx="14" fill="#1B1918"/>
-  <g transform="translate(32 33.4) scale(1.05) translate(-32 -32)">
-    <path d="M32 29.3C39.6 29.3 44.8 34.9 44.8 41.8C44.8 47.6 41.6 52.2 39 54.4H25C22.4 52.2 19.2 47.6 19.2 41.8C19.2 34.9 24.4 29.3 32 29.3Z" fill="#E4572E" stroke="#F3EFEC" stroke-width="6.2" stroke-linejoin="round"/><path d="M29.2 6.2L34.8 9.9M16 19.6H48" stroke="#F3EFEC" stroke-width="6.2" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 오늘의 취향 심볼: 로고 '취'의 ㅊ을 별표로 그린 것(12시는 점). 주홍 타일 위 흰색 -->
+  <rect width="100" height="100" rx="22" fill="#E4572E"/>
+  <g transform="translate(12 12) scale(.826) translate(-4 -6)" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round">
+    <path d="M50 58l29.5-9.6M50 58l18.2 25.1M50 58l-18.2 25.1M50 58l-29.5-9.6"/>
+    <circle cx="50" cy="26" r="12.3" fill="#FFFFFF" stroke="none"/>
   </g>
 </svg>
