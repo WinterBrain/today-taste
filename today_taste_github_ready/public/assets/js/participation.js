@@ -12,14 +12,14 @@
     const p = d.payment;
     const account = p
       ? `<div class="pay-row"><dt>입금 계좌</dt><dd>${esc(p.bank)} <b class="num">${esc(p.account)}</b>${p.holder ? `<br><span>예금주 ${esc(p.holder)}</span>` : ''}</dd></div><button class="btn btn-line btn-block" data-copy="${esc((p.bank + ' ' + p.account).trim())}">${UI.icon('copy', 'icon icon-sm')}계좌번호 복사</button>`
-      : '<p class="muted">입금 계좌는 운영자가 카카오톡으로 안내해 드려요.</p>';
+      : '<p class="muted">입금 계좌는 카카오톡으로 안내해 드려요.</p>';
     const deadline = withCountdown
       ? `<div class="pay-row"><dt>입금 기한</dt><dd><b class="num countdown" data-countdown>--:--:--</b> 남음<br><span>${d.deadline ? TT.clockLabel(d.deadline) + '까지 · ' : ''}지나면 자동으로 취소돼요</span></dd></div>`
       : '<div class="pay-row"><dt>입금 기한</dt><dd>참여 확정 후 10시간 안</dd></div>';
     return `<dl class="paybox"><div class="pay-row"><dt>입금 금액</dt><dd><b class="num">${won(d.fee)}</b></dd></div>${account}${deadline}<p class="hint">신청자 이름(${esc(d.name)})으로 입금해 주세요.</p></dl>`;
   }
   const contact = () => `<a class="text-link center" href="${esc(SITE.kakaoChannelUrl)}" target="_blank" rel="noopener">${UI.icon('chat', 'icon icon-sm')} 카카오톡 채널로 문의하기</a>`;
-  const page = (title, body) => `<section class="link-body">${head(data)}<h1 class="serif">${title}</h1>${body}${contact()}</section>`;
+  const page = (title, body) => `<section class="link-body">${head(data)}<h1 class="heading">${title}</h1>${body}${contact()}</section>`;
 
   function render() {
     const d = data;
@@ -27,7 +27,7 @@
     if (d.schedule_cancelled && ['승인', '입금대기'].includes(d.status)) {
       box.innerHTML = page('이 일정은 취소됐어요', '<p class="muted">입금하지 않으셔도 돼요. 이미 입금하셨다면 전액 돌려드려요. 다른 일정을 골라 다시 신청해 주세요.</p><a class="btn btn-secondary btn-block" href="/">다른 일정 보기</a>');
     } else if (d.status === '승인') {
-      box.innerHTML = `<section class="link-body">${head(d)}<h1 class="serif">${esc(d.name)}님, 신청이 승인됐어요</h1>
+      box.innerHTML = `<section class="link-body">${head(d)}<h1 class="heading">${esc(d.name)}님, 신청이 승인됐어요</h1>
         <p class="muted">참여할지 알려주세요. 참여를 누르면 아래 계좌로 10시간 안에 입금해 주시면 돼요.</p>${payBox(d, false)}${contact()}
         <div class="bottom-bar stack"><button class="btn btn-primary btn-block" data-act="accept">참여할게요</button><button class="btn btn-secondary btn-block" data-act="decline">이번엔 참여하지 않을게요</button></div></section>`;
     } else if (d.status === '입금대기') {

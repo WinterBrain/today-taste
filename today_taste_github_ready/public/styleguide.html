@@ -41,7 +41,7 @@
 <main class="sg">
   <header class="sg-head">
     <div>
-      <h1 class="serif">디자인 토큰</h1>
+      <h1 class="heading">디자인 토큰</h1>
       <p>기준 파일 <code>public/assets/css/tokens.css</code> 를 그대로 읽어 그립니다. 값을 바꾸면 이 페이지도 따라 바뀝니다.</p>
     </div>
     <span class="spacer"></span>
@@ -58,7 +58,7 @@
     <li>포인트 컬러는 <code>--accent</code> 하나만 씁니다. 상태색(<code>--ok</code>·<code>--warn</code>·<code>--danger</code>)은 상태 표시에만 씁니다.</li>
     <li>UI에 이모지를 쓰지 않습니다. 아이콘은 <code>ui.js</code> 의 인라인 SVG(선 1.75px)를 씁니다.</li>
     <li>여백(padding·margin·gap)은 <code>--sp-숫자</code> 토큰만 씁니다(숫자 = px). 4px 단위가 기본이고 2px 단위는 세밀한 맞춤용입니다.</li>
-    <li>숫자(가격·시간·인원)에는 <code>.num</code>(고정폭 숫자)을 붙입니다. 로고·페이지 제목은 <code>.serif</code>.</li>
+    <li>숫자(가격·시간·인원)에는 <code>.num</code>(고정폭 숫자)을 붙입니다. 페이지 제목·모임 이름은 <code>.heading</code>(Pretendard 800), 로고 글자는 <code>--font-logo</code>.</li>
     <li>CSS 파일에는 색·반경·글자 크기·z-index·여백 값을 직접 쓰지 않고 토큰을 씁니다. <code>npm test</code> 가 검사합니다. 전체 규칙은 <code>.agents/AGENTS.md</code> 의 "디자인 작업 규칙".</li>
   </ul>
 

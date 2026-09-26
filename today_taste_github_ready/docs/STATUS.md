@@ -15,6 +15,7 @@
 | 구분 | 내용 | 해야 할 일 |
 |---|---|---|
 | 서비스 컨셉 문서 | 서비스 컨셉(진행자 1 + 참여자 2 = 최대 3명, 원데이 클래스, 20대 중심·30대까지, 취향 발견의 시작점)과 기능·디자인 결정 기준을 **`docs/CONCEPT.md`** 에 정리했습니다. AGENTS.md 개요에도 요약이 있습니다 | 기능 추가·확장·디자인·문구를 정하기 전에 읽고, 맞지 않으면 합의한 뒤 문서부터 고칩니다 |
+| 글꼴 (2026-09-26) | 명조(Noto Serif KR)를 없애고 **Pretendard 하나**로 통일했습니다. CSS 클래스 **`.serif` → `.heading`**, 토큰 **`--serif` → `--font-logo`**(로고 전용). 로고 글꼴 `public/assets/fonts/taste-wordmark.woff2` 는 나눔스퀘어라운드에서 "오늘의 취향" 여섯 글자만 남긴 수정본(OFL, 라이선스 파일 같은 폴더) | 작업 중인 코드에 `.serif`·`--serif` 가 있으면 바꿉니다. 로고 글자를 바꾸면 글꼴 파일을 다시 만들어야 합니다 |
 | 회차 정원 기준 | 한 테이블 구성이 **"진행자 1명 + 참여자 2명 = 총 3명"**으로 명확화됨에 따라 회차 신청 정원(`capacity`) 기본값이 **2명**으로 변경되었습니다 (`schema.sql`, `server.js`, `admin.js`, `scripts/seed-demo.js`). 화면에서도 참여 정원 2명(총 3명)으로 표시됩니다 | 신규 일정 등록 시 기본 정원이 2명으로 적용됩니다 |
 | DB 스키마 | `groups` 에 `cover_url, gallery_json, for_whom_json, includes_json, fee_note, host_bio, host_photo_url, place_note`, `applications` 에 `motivation, marketing_ok, purged_at`, `reviews` 에 `publish_ok, hidden` 컬럼 추가 | 없음 — 서버를 켜면 기존 DB에 자동으로 추가됩니다 |
 | 마이그레이션 위치 | 컬럼 추가 목록이 `lib/migrate.js` 의 `COLUMNS` 한 곳으로 모였습니다 (전에는 server.js와 seed-demo.js에 복제) | 앞으로 컬럼을 추가할 때는 `lib/migrate.js` 와 `schema.sql` 만 고칩니다 |

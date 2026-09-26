@@ -31,7 +31,7 @@
 
   // 사진이 없거나 못 불러오면 분야·태그를 크게 쓴 타이포그래피 커버로 대체한다
   function fallbackCover(group, cls) {
-    return `<div class="cover-fallback ${cls || ''}" role="img" aria-label="${esc(group.name)}"><span class="serif">${esc(group.tag || group.field)}</span><small>${esc(group.field)}</small></div>`;
+    return `<div class="cover-fallback ${cls || ''}" role="img" aria-label="${esc(group.name)}"><span class="heading">${esc(group.tag || group.field)}</span><small>${esc(group.field)}</small></div>`;
   }
   function cover(url, group, cls = '', { eager = false } = {}) {
     if (!url) return fallbackCover(group, cls);

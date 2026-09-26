@@ -12,7 +12,7 @@
   function render(d) {
     box.innerHTML = `<section class="link-body">
       <div class="link-head">${UI.cover(d.cover_url, { name: d.group_name, tag: [...String(d.group_name || '')][0] || '', field: '' }, 'link-thumb', { eager: true })}<div><b>${esc(d.group_name)}</b><span>${TT.fmtDateShort(d.date)} 참여</span></div></div>
-      <h1 class="serif">${esc(d.name)}님, 모임은 어떠셨어요?</h1>
+      <h1 class="heading">${esc(d.name)}님, 모임은 어떠셨어요?</h1>
       <p class="muted">1분이면 끝나요. 다음 모임을 준비하는 데 큰 도움이 돼요.</p>
       <div class="rate-main"><span>${ITEMS[0][1]}</span>${stars(ITEMS[0][0], ITEMS[0][1], true)}</div>
       <div class="rate-list">${ITEMS.slice(1).map(([k, l]) => `<div class="rate-row"><span>${l}</span>${stars(k, l)}</div>`).join('')}</div>
@@ -43,7 +43,7 @@
         report: document.getElementById('r-report').checked,
         report_text: document.getElementById('r-report-text').value,
       }) });
-      box.innerHTML = `<section class="link-body"><span class="done-mark">${UI.icon('check')}</span><h1 class="serif">소중한 후기 고마워요</h1><p class="muted">다음 모임에서 또 만나요.</p><a class="btn btn-secondary btn-block" href="/">다른 모임 둘러보기</a></section>`;
+      box.innerHTML = `<section class="link-body"><span class="done-mark">${UI.icon('check')}</span><h1 class="heading">소중한 후기 고마워요</h1><p class="muted">다음 모임에서 또 만나요.</p><a class="btn btn-secondary btn-block" href="/">다른 모임 둘러보기</a></section>`;
     } catch (err) { UI.toast(err.message); btn.disabled = false; }
   });
 

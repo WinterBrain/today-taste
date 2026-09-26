@@ -96,11 +96,12 @@
   }
   const sectionHead = (title, sub, more) => `<div class="section-head"><div><h2>${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div>${more ? `<a class="more" href="${more}">전체 보기${UI.icon('forward', 'icon icon-sm')}</a>` : ''}</div>`;
 
+  const NEW_UNTIL = 3;  // 진행 횟수가 이보다 적으면 "N회 진행" 대신 "새 모임"으로 보여준다
   function cardBadge(g) {
     const open = TT.openSchedules(g);
     if (!open.length) return '<span class="badge badge-muted">모집 마감</span>';
     if (open.some(s => Number(s.remaining) === 1)) return '<span class="badge badge-accent">마감 임박</span>';
-    if (g.stats && g.stats.sessions_done) return `<span class="badge badge-ok">${g.stats.sessions_done}회 진행</span>`;
+    if (g.stats && g.stats.sessions_done >= NEW_UNTIL) return `<span class="badge badge-ok">${g.stats.sessions_done}회 진행</span>`;
     return '<span class="badge badge-soft">새 모임</span>';
   }
   function groupCard(g, { wide = false } = {}) {
@@ -139,14 +140,14 @@
   // [제목, 설명, 걸리는 시간]. 홈 "처음이라면"과 이용 안내에서 같이 쓴다
   const STEPS = [
     ['신청 보내기', '일정을 고르고 이름·나이·신청 이유를 적어요.', '3분'],
-    ['운영자 검토', '신청 내용을 확인하고 함께할 참여자 두 분의 자리를 안내해요.', '보통 24시간 안'],
+    ['진행자 확인', '진행자가 신청 내용을 보고 자리를 안내해요.', '보통 24시간 안'],
     ['참여 확인', '승인되면 카카오톡으로 링크가 와요. 링크에서 "참여할게요"를 눌러주세요.', '카카오톡'],
     ['입금', '링크에 나온 계좌로 신청자 이름으로 입금해요. 입금이 확인되면 자리가 확정돼요.', '10시간 안'],
     ['모임 당일', '확정 안내에 적힌 장소로 오시면 돼요. 끝나면 후기 링크를 보내드려요.', ''],
   ];
   const stepsList = () => `<ol class="flow">${STEPS.map(([t, d, w]) => `<li><b>${t}</b>${w ? `<span class="when">${w}</span>` : ''}<p>${d}</p></li>`).join('')}</ol>`;
-  const PROMISES = [['참여 정원', '2명', '진행자 포함 총 3명'], ['승인 안내', '24시간', '보통 이 안에 알려드려요'], ['입금 전 취소', '0원', '비용 없이 취소돼요']];
-  const promiseRow = () => `<dl class="promise">${PROMISES.map(([k, v, d]) => `<div><dt>${k}</dt><dd class="serif num">${v}</dd><dd>${d}</dd></div>`).join('')}</dl>`;
+  const PROMISES = [['한 모임 인원', '최대 3명', '진행자 1명 + 참여자 2명'], ['모임 시간', '약 2시간', '하루로 끝나는 원데이 클래스'], ['입금 전 취소', '0원', '비용 없이 취소돼요']];
+  const promiseRow = () => `<dl class="promise">${PROMISES.map(([k, v, d]) => `<div><dt>${k}</dt><dd class="heading num">${v}</dd><dd>${d}</dd></div>`).join('')}</dl>`;
 
   // 자주 묻는 질문: 주제별로 나눠 칩으로 고른다. 규칙이 바뀌면(나이·기한·환불) 여기도 고친다
   const FAQ = [
@@ -154,18 +155,18 @@
       ['혼자 신청해도 되나요?', '네, 대부분 혼자 오세요. 진행자 1명과 참여자 2명으로 진행되어 어색하지 않고 편안하게 참여할 수 있어요.\n친구와 함께 오고 싶다면 같은 일정에 각자 신청해 주세요. 승인은 한 사람씩 따로 정해요.'],
       ['누가 신청할 수 있나요?', '만 19~35세면 누구나 신청할 수 있어요. 나이가 이 범위를 벗어나면 신청서가 접수되지 않아요.'],
       ['신청 이유는 뭘 쓰면 되나요?', '거창하지 않아도 괜찮아요. 이 모임이 궁금해진 계기나 해보고 싶은 것을 10자 이상 적어주세요.\n예) "향수를 살 때마다 뭘 골라야 할지 몰라서, 제 취향을 알고 싶어요."'],
-      ['승인 결과는 어떻게 알 수 있나요?', '운영자가 보통 24시간 안에 신청서를 확인해요. 승인되면 카카오톡으로 참여 확인 링크를 보내드리고, 이번에 함께하기 어려울 때도 카카오톡으로 알려드려요.'],
+      ['승인 결과는 어떻게 알 수 있나요?', '진행자가 보통 24시간 안에 신청서를 확인해요. 승인되면 카카오톡으로 참여 확인 링크를 보내드리고, 이번에 함께하기 어려울 때도 카카오톡으로 알려드려요.'],
     ]],
     ['입금·확정', [
-      ['신청하면 바로 확정인가요?', '아니에요. 세 단계를 거쳐 확정돼요.\n1. 운영자가 신청서를 보고 승인해요.\n2. 카카오톡 링크에서 "참여할게요"를 눌러요.\n3. 10시간 안에 입금하면 자리가 확정돼요.'],
-      ['입금은 어디로 하나요?', '"참여할게요"를 누르면 같은 화면에 계좌번호와 금액이 나와요. 신청자 이름으로 입금해 주세요. 운영자가 입금을 확인하면 확정 안내를 보내드려요.'],
+      ['신청하면 바로 확정인가요?', '아니에요. 세 단계를 거쳐 확정돼요.\n1. 진행자가 신청서를 확인해요.\n2. 카카오톡 링크에서 "참여할게요"를 눌러요.\n3. 10시간 안에 입금하면 자리가 확정돼요.'],
+      ['입금은 어디로 하나요?', '"참여할게요"를 누르면 같은 화면에 계좌번호와 금액이 나와요. 신청자 이름으로 입금해 주세요. 입금이 확인되면 확정 안내를 보내드려요.'],
       ['10시간 안에 입금하지 못하면요?', '신청이 자동으로 취소되고 비용은 들지 않아요. 자리는 다음 신청자에게 넘어가요. 다시 참여하고 싶다면 새로 신청해 주세요.'],
       ['입금했는데 정원이 먼저 찼다면요?', '입금을 확인할 때 자리가 이미 찼다면 입금액을 전액 돌려드려요. 환불 계좌는 카카오톡 채널로 여쭤볼게요.'],
     ]],
     ['취소·환불', [
       ['입금 전에 취소할 수 있나요?', '네, 입금 전에는 비용 없이 취소돼요. 참여 확인 링크에서 "이번엔 참여하지 않을게요"를 누르면 돼요. 승인 전이라면 카카오톡 채널로 알려주세요.'],
       ['입금 후 취소하면 얼마나 돌려받나요?', `모임일 자정을 기준으로 이렇게 돌려드려요.\n${TT.REFUND_RULES.map(r => '· ' + r).join('\n')}\n취소는 카카오톡 채널로 요청해 주세요. 환불은 3영업일 안에 해드려요.`],
-      ['모임이 취소되면요?', '호스트 사정 등으로 일정이 취소되면 입금액 전액을 돌려드려요. 취소 소식은 카카오톡으로 먼저 알려드려요.'],
+      ['모임이 취소되면요?', '진행자 사정 등으로 일정이 취소되면 입금액 전액을 돌려드려요. 취소 소식은 카카오톡으로 먼저 알려드려요.'],
     ]],
     ['모임 당일', [
       ['정확한 장소는 언제 알려주나요?', '자리가 확정되면 확정 안내와 함께 정확한 위치를 보내드려요. 그전에는 모임 소개 화면의 "오시는 길"에서 동네를 확인할 수 있어요.'],
@@ -200,7 +201,7 @@
     let h = topbar({ right: '<a class="text-link" href="#/guide">이용 안내</a>' });
     h += `<div class="pad"><a class="banner" href="#/guide">
         <img src="/assets/img/brand/home-banner.jpg" alt="" onerror="this.closest('.banner').classList.add('no-photo');this.remove()">
-        <div class="banner-copy"><strong>부담 없이 딱 두 시간, 셋이서<br>오늘 새로운 취향을 발견해보세요</strong><span>오늘의 취향은 어떻게 운영되나요 ${UI.icon('forward', 'icon icon-sm')}</span></div>
+        <div class="banner-copy"><strong>부담 없이 딱 두 시간, 셋이서<br>오늘 새로운 취향을 발견해보세요</strong><span>처음이라면 여기부터 보세요 ${UI.icon('forward', 'icon icon-sm')}</span></div>
       </a></div>`;
     h += `<div class="section filters"><div class="chips hscroll" role="tablist" aria-label="모임 필터">${FILTERS.map(([k, l]) => `<button class="chip${S.filter === k ? ' is-on' : ''}" role="tab" aria-selected="${S.filter === k}" data-action="filter" data-key="${k}">${l}</button>`).join('')}</div></div>`;
     h += `<div class="section find-wrap"><a class="find-entry" href="#/find"><div><b>언제 시간 되세요?</b><span>요일과 시간대를 고르면 맞는 모임을 골라드려요</span></div><span class="find-go">시간대 고르기${UI.icon('forward', 'icon icon-sm')}</span></a></div>`;
@@ -260,7 +261,7 @@
   function trustLine(st) {
     const items = [];
     if (st.review_count) items.push(`${UI.icon('star', 'icon star is-on')}<b class="num">${Number(st.rating_avg).toFixed(1)}</b> (후기 ${st.review_count})`);
-    if (st.sessions_done) items.push(`${st.sessions_done}회 진행`);
+    if (st.sessions_done >= NEW_UNTIL) items.push(`${st.sessions_done}회 진행`);
     if (st.participants) items.push(`누적 ${st.participants}명 참여`);
     return items.length ? items.map(x => `<span>${x}</span>`).join('') : '<span class="badge badge-soft">새로 열린 모임</span>';
   }
@@ -307,13 +308,13 @@
     </div>`;
     h += `<section class="pad title-block">
       <div class="crumb">${esc(g.field)} · ${esc(g.tag)}</div>
-      <h1 class="serif">${esc(g.name)}</h1>
+      <h1 class="heading">${esc(g.name)}</h1>
       <p class="tagline">${esc(g.tagline)}</p>
       <div class="trust">${trustLine(g.stats || {})}</div>
     </section>`;
     h += `<section class="pad"><ul class="facts">
       <li>${UI.icon('clock')}<div><b>${esc(g.duration)}</b>${bands.length ? `<span>${bands.join('·')} 진행</span>` : ''}</div></li>
-      <li>${UI.icon('users')}<div><b>참여 정원 ${cap}명 (진행자 포함 총 3명) · 운영자 승인 후 확정</b>${firstOpen ? `<span>${UI.seats(TT.seatInfo(firstOpen.capacity, firstOpen.remaining))} 가장 가까운 일정 기준</span>` : ''}</div></li>
+      <li>${UI.icon('users')}<div><b>최대 3명 (진행자 1명 + 참여자 ${cap}명)</b>${firstOpen ? `<span>다음 일정 ${UI.seats(TT.seatInfo(firstOpen.capacity, firstOpen.remaining))}</span>` : ''}</div></li>
       <li>${UI.icon('wallet')}<div><b class="num">${won(g.fee)}</b>${g.fee_note ? `<span>${esc(g.fee_note)}</span>` : ''}</div></li>
       <li>${UI.icon('pin')}<div><b>대구 중구 ${esc(g.place)}</b><span>정확한 위치는 참여 확정 후 안내해요</span></div></li>
     </ul></section>`;
@@ -333,7 +334,7 @@
     h += readSection('포함 사항', includes.length ? `<ul class="checks">${includes.map(x => `<li>${UI.icon('check')}<span>${esc(x)}</span></li>`).join('')}</ul>` : '');
     h += readSection('진행 순서', order.length ? `<ol class="timeline">${order.map(TT.parseStep).map((s, i) => `<li><span class="t num">${esc(s.time || String(i + 1))}</span><span>${esc(s.text)}</span></li>`).join('')}</ol>` : '');
     h += readSection('준비물', bulletList(prep));
-    if (g.host_name) h += readSection('호스트', `<div class="host">${g.host_photo_url ? `<img src="${esc(g.host_photo_url)}" alt="" class="host-photo" data-initial="${esc(hostInitial)}">` : `<span class="host-photo initial">${esc(hostInitial)}</span>`}<div><b>${esc(g.host_name)}</b><span>${esc(g.host_role)}</span></div></div>${g.host_bio ? `<p>${esc(g.host_bio)}</p>` : ''}`);
+    if (g.host_name) h += readSection('진행자 소개', `<div class="host">${g.host_photo_url ? `<img src="${esc(g.host_photo_url)}" alt="" class="host-photo" data-initial="${esc(hostInitial)}">` : `<span class="host-photo initial">${esc(hostInitial)}</span>`}<div><b>${esc(g.host_name)}</b><span>${esc(g.host_role)}</span></div></div>${g.host_bio ? `<p>${esc(g.host_bio)}</p>` : ''}`);
     h += readSection('오시는 길', `<p class="place"><b>대구 중구 ${esc(g.place)}</b>${g.place_note ? `<br>${esc(g.place_note)}` : ''}</p><p class="muted">정확한 위치는 참여 확정 후 안내해요.</p><a class="btn btn-line" href="https://map.kakao.com/?q=${encodeURIComponent('대구 ' + g.place)}" target="_blank" rel="noopener">${UI.icon('external', 'icon icon-sm')}카카오맵에서 보기</a>`);
     h += readSection('환불 규정', `${bulletList(refund)}<p class="muted refund-note">입금 전 취소는 비용이 없어요. 날짜 기준은 모임일 자정이에요. ${ownRefund.length ? '이 규정이 <a class="text-link" href="#/policy/terms">이용약관</a>의 공통 기준보다 불리하면 공통 기준을 따라요.' : ''}</p>`);
     h += readSection('자주 묻는 질문', `${faq.length ? faqList(faq) : ''}<a class="more-link" href="#/guide">신청·입금·환불 질문 더 보기${UI.icon('forward', 'icon icon-sm')}</a>`);
@@ -365,8 +366,8 @@
         <div class="field"><span class="label" id="l-job">직업</span><div class="choice-row" role="radiogroup" aria-labelledby="l-job">${JOBS.map(j => `<button type="button" class="choice${f.job === j ? ' is-on' : ''}" role="radio" aria-checked="${f.job === j}" data-action="choose" data-key="job" data-val="${j}">${j}</button>`).join('')}</div>${err('job')}</div>
         <details class="field mbti"${mbti !== '모름' ? ' open' : ''}><summary><span class="label">MBTI <em>선택</em></span><span class="val">${esc(mbti)} ${UI.icon('plus', 'icon icon-sm')}</span></summary><div class="mbti-grid">${[...MBTI, '모름'].map(m => `<button type="button" class="choice${mbti === m ? ' is-on' : ''}" data-action="choose" data-key="mbti" data-val="${m}">${m}</button>`).join('')}</div></details>
         <div class="field"><label for="f-phone">휴대폰 번호</label><input id="f-phone" class="input num" data-bind="phone" value="${esc(f.phone)}" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-0000-0000" ${inv('phone')}><p class="hint">승인·입금 안내를 카카오톡으로 보내드려요</p>${err('phone')}</div>
-        <div class="field"><label for="f-mot">신청 이유</label><textarea id="f-mot" class="input" rows="4" data-bind="motivation" maxlength="300" placeholder="이 모임에서 기대하는 점이나 관심 계기를 적어주세요. 운영자가 승인할 때 참고해요." ${inv('motivation')}>${esc(f.motivation)}</textarea><div class="hint-row"><p class="hint">10자 이상 적어주세요</p><p class="hint num"><span data-counter>${f.motivation.trim().length}</span>/300</p></div>${err('motivation')}</div>
-        <div class="notice"><b>신청 후 이렇게 진행돼요</b><ol><li>운영자 검토 (보통 24시간 안)</li><li>카카오톡으로 참여 확인 링크 도착</li><li>참여 확정 후 10시간 안에 입금하면 자리 확정</li></ol></div>
+        <div class="field"><label for="f-mot">신청 이유</label><textarea id="f-mot" class="input" rows="4" data-bind="motivation" maxlength="300" placeholder="이 모임이 궁금해진 계기나 해보고 싶은 걸 편하게 적어주세요. 진행자가 모임을 준비할 때 참고해요." ${inv('motivation')}>${esc(f.motivation)}</textarea><div class="hint-row"><p class="hint">10자 이상 적어주세요</p><p class="hint num"><span data-counter>${f.motivation.trim().length}</span>/300</p></div>${err('motivation')}</div>
+        <div class="notice"><b>신청 후 이렇게 진행돼요</b><ol><li>진행자 확인 (보통 24시간 안)</li><li>카카오톡으로 참여 확인 링크 도착</li><li>참여 확정 후 10시간 안에 입금하면 자리 확정</li></ol></div>
         <div class="agree-group">
           <label class="agree"><input type="checkbox" data-agree="agreeRequired" ${f.agreeRequired ? 'checked' : ''} ${inv('agreeRequired')}><span><em class="req">필수</em> 개인정보 수집·이용 동의</span><button type="button" class="text-link" data-action="policy" data-tab="privacy">보기</button></label>${err('agreeRequired')}
           <label class="agree"><input type="checkbox" data-agree="agreeMarketing" ${f.agreeMarketing ? 'checked' : ''}><span><em>선택</em> 새 모임 소식 받기 (광고성 정보 수신 동의)</span><button type="button" class="text-link" data-action="policy" data-tab="marketing">보기</button></label>
@@ -426,12 +427,12 @@
   routes.done = function () {
     const d = S.done;
     if (!d) { setTimeout(() => go('#/'), 0); return ''; }
-    const steps = [['신청 접수', '지금'], ['운영자 검토', '보통 24시간 안에 확인해요'], ['참여 확인', '카카오톡으로 링크를 보내드려요'], ['입금 후 확정', '참여 확정 후 10시간 안에 입금해 주세요']];
+    const steps = [['신청 접수', '지금'], ['진행자 확인', '보통 24시간 안에 확인해요'], ['참여 확인', '카카오톡으로 링크를 보내드려요'], ['입금 후 확정', '참여 확정 후 10시간 안에 입금해 주세요']];
     return `<div data-title="신청 완료 — 오늘의 취향"></div>` + topbar({}) + `
       <section class="pad done">
         <span class="done-mark">${UI.icon('check')}</span>
-        <h1 class="serif">신청이 접수됐어요</h1>
-        <p class="muted">${esc(d.name)}님, 운영자가 확인하면 카카오톡으로 알려드릴게요.</p>
+        <h1 class="heading">신청이 접수됐어요</h1>
+        <p class="muted">${esc(d.name)}님, 진행자가 확인하면 카카오톡으로 알려드릴게요.</p>
         <ol class="progress-v">${steps.map(([t, s], i) => `<li class="${i === 0 ? 'is-now' : ''}"><b>${t}</b><span>${s}</span></li>`).join('')}</ol>
         <dl class="receipt"><div><dt>접수번호</dt><dd class="num">#${esc(d.id)}</dd></div><div><dt>모임</dt><dd>${esc(d.group)}</dd></div><div><dt>일시</dt><dd>${esc(d.when)}</dd></div><div><dt>장소</dt><dd>${esc(d.place)}</dd></div></dl>
         <a class="btn btn-secondary btn-block" href="#/">다른 모임 둘러보기</a>
@@ -473,7 +474,7 @@
     return `<div data-title="이용 안내 — 오늘의 취향"></div>` + topbar({ back: true, title: '이용 안내' }) + `
       <section class="pad read guide">
         <img class="guide-photo" src="/assets/img/brand/guide.jpg" alt="" onerror="this.remove()">
-        <h1 class="serif">오늘의 취향은 이렇게 운영돼요</h1>
+        <h1 class="heading">오늘의 취향은 이렇게 운영돼요</h1>
         <p>대구 중구의 작은 공방과 카페에서 열리는 원데이 모임이에요. 진행자 한 명과 참여자 두 명, 총 세 명이 한 테이블에 모여요. 소규모로 진행되어 실습에 온전히 집중할 수 있어요.</p>
         <h2>신청부터 모임 당일까지</h2>${stepsList()}
         <h2>입금과 확정</h2><p>참여를 확정하면 참여 확인 페이지에 입금 계좌와 금액이 표시돼요. 10시간 안에 신청자 이름으로 입금해 주세요. 기한이 지나면 자동으로 취소되고 다음 신청자에게 기회가 넘어가요.</p>
