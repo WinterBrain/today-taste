@@ -90,9 +90,14 @@
   // 글자 로고(신청자 앱·링크 페이지·운영콘솔 공용). 좌표는 Gemini 시안(2026-09-26)의 픽셀 위치를 따른다. '오'의 ㅇ은 해, '취'의 ㅊ은 별표(12시는 점).
   // 검정 획은 currentColor 라 다크 모드에서 자동 반전되고, 해·별표는 --accent. 파비콘은 icons/favicon.svg(별표 타일)
   const LOGO_SVG = '<svg class="logo" viewBox="82 195 878 183" aria-hidden="true"><g fill="none" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"><path stroke="var(--accent)" d="M212.5 272h9M94.5 272h9M158 207.5v9M112.5 226.5l7 7M203 226.5l-7 7M112.5 318l7-7M203 318l-7-7M688 260l-40.9-13.3M688 260l40.9-13.3M688 260l-25.3 34.8M688 260l25.3 34.8"/><g stroke="currentColor"><path d="M158 327.5v31M94.5 358.5h127M275.5 220.5v29h102M259.5 275.5h134M276.5 301.5h104v29.5h-104v30.5h107.5M425.5 336.5h105M556.5 223.5v142M635.5 330.5h105M688 330.5v35M766.5 223.5v142M855 214.5v13.5M818.5 238h73M921.5 220.5v90M921.5 247h19M921.5 280h19"/><circle cx="476.5" cy="264" r="34"/><circle cx="855" cy="277" r="22"/><circle cx="874" cy="348" r="18.5"/></g></g><g fill="var(--accent)"><circle cx="158" cy="272" r="40"/><circle cx="688" cy="217" r="14"/></g></svg>';
-  // 화면에 넣는 로고 묶음: 위에 작은 설명(태그라인) + 글자 로고. 모든 화면이 이것을 쓴다(크기는 감싸는 곳의 CSS)
+  // 화면에 넣는 로고 묶음: 태그라인 + 글자 로고를 한 SVG 로. 태그라인은 로고 가로 길이(해 왼쪽 끝 ~ 향 오른쪽 끝)에 가깝게 크기를 정했다.
+  // 모든 화면이 이것을 쓴다(높이는 감싸는 곳의 CSS 에서 .logo-lockup 으로)
   const LOGO_TAGLINE = '대구 청년의 취미 놀이터';
-  const LOGO_HTML = '<span class="logo-lockup"><span class="logo-tagline">' + LOGO_TAGLINE + '</span>' + LOGO_SVG + '</span>';
+  // 자간은 그대로 두고 글자 크기로 폭을 정한다(Pretendard 기준 잉크 폭 = 글자 크기 × 9.23). 86 → 약 794, 로고 폭(872)보다 살짝 좁게 보이도록
+  const LOGO_HTML = LOGO_SVG.replace('class="logo" viewBox="82 195 878 183"', 'class="logo-lockup" viewBox="82 100 878 278"')
+    .replace('<g fill="none"', '<text x="79.8" y="178" font-size="86" font-weight="400" fill="var(--ink-3)">' + LOGO_TAGLINE + '</text><g fill="none"');
+  // 흑백 버전(푸터 등): 해·별표·태그라인까지 모두 글자색 한 가지. 색은 감싸는 곳의 color 로 정한다
+  const LOGO_MONO_HTML = LOGO_HTML.replaceAll('var(--accent)', 'currentColor').replace('fill="var(--ink-3)"', 'fill="currentColor"');
 
   const JOBS = ['대학생', '직장인', '프리랜서', '기타'];
   const NAME_MAX = 20;
@@ -139,6 +144,6 @@
     return { expired: false, text: `${pad(Math.floor(t / 3600))}:${pad(Math.floor((t % 3600) / 60))}:${pad(t % 60)}` };
   }
 
-  const TT = { esc, won, parseDate, parseSqlDateTime, dowKo, fmtDateShort, fmtDateLong, todayStr, daysBetween, timeLabel, timeRange, dayBucket, band, cellKey, seatInfo, parseStep, listOf, pairsOf, parseHash, formatPhone, caretAfterDigits, maskName, REFUND_RULES, JOBS, NAME_MAX, LOGO_SVG, LOGO_TAGLINE, LOGO_HTML, validateApply, openSchedules, nextSchedule, matchesFilter, countdown, deadlineFromSeconds, clockLabel };
+  const TT = { esc, won, parseDate, parseSqlDateTime, dowKo, fmtDateShort, fmtDateLong, todayStr, daysBetween, timeLabel, timeRange, dayBucket, band, cellKey, seatInfo, parseStep, listOf, pairsOf, parseHash, formatPhone, caretAfterDigits, maskName, REFUND_RULES, JOBS, NAME_MAX, LOGO_SVG, LOGO_TAGLINE, LOGO_HTML, LOGO_MONO_HTML, validateApply, openSchedules, nextSchedule, matchesFilter, countdown, deadlineFromSeconds, clockLabel };
   if (typeof module !== 'undefined' && module.exports) module.exports = TT; else root.TT = TT;
 })(typeof window !== 'undefined' ? window : globalThis);

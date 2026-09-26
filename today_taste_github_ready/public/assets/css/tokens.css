@@ -141,10 +141,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }
 a { color: inherit; text-decoration: none; }
 .num { font-variant-numeric: tabular-nums; }
-/* 로고 묶음(core.js 의 TT.LOGO_HTML): 위에 작은 태그라인, 아래 글자 로고. 로고 높이는 쓰는 곳에서 .logo 로 정한다 */
-.logo-lockup { display: inline-grid; gap: var(--sp-2); justify-items: start; line-height: 1; }
-.logo-lockup .logo { display: block; width: auto; }
-.logo-tagline { font-size: var(--fs-12); font-weight: 600; color: var(--ink-3); letter-spacing: -0.02em; white-space: nowrap; }
+/* 로고 묶음(core.js 의 TT.LOGO_HTML): 태그라인 + 글자 로고가 한 SVG. 높이는 쓰는 곳에서 .logo-lockup 으로 정한다 */
+.logo-lockup { display: block; width: auto; }
 .heading { font-weight: 800; letter-spacing: -0.02em; }  /* 페이지 제목·모임 이름·큰 숫자 */
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .icon { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }

@@ -13,8 +13,8 @@ body { background: var(--bg-sunken); }
 .topbar .icon-btn:first-child { margin-left: calc(var(--sp-10) * -1); }
 .topbar-title { margin: 0; font-size: var(--fs-17); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wordmark { display: inline-flex; align-items: center; }
-.wordmark .logo { height: 22px; }
-.region { font-size: var(--fs-12); color: var(--ink-3); border: 1px solid var(--line); border-radius: var(--r-chip); padding: 0 var(--sp-6); line-height: 20px; }
+.topbar.is-brand { height: 72px; box-shadow: 0 1px 0 var(--line); margin-bottom: var(--sp-16); }  /* 로고 헤더: 태그라인 + 로고. 아래 선과 여백으로 본문(배너)과 나눈다 */
+.wordmark .logo-lockup { height: 37px; }  /* 로고 약 24px, 태그라인 약 11.5px */
 .icon-btn { width: 40px; height: 40px; display: inline-grid; place-items: center; border-radius: var(--r-round); }
 .text-link { font-size: var(--fs-14); color: var(--ink-2); }
 
@@ -96,6 +96,8 @@ body { background: var(--bg-sunken); }
 /* 푸터가 있는 화면(홈·이용 안내·약관)은 하단 고정 바가 없으니 .shell 의 아래 공간을 비우지 않는다 */
 .shell:has(.footer) { padding-bottom: 0; }
 .footer { margin-top: var(--sp-56); padding: var(--sp-28) var(--gutter) var(--sp-40); background: var(--bg-sunken); font-size: var(--fs-13); color: var(--ink-3); line-height: 1.7; }
+.footer-logo { color: var(--ink-3); margin-bottom: var(--sp-20); }
+.footer-logo .logo-lockup { height: 34px; }
 .footer .links { display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-14); margin-bottom: var(--sp-14); color: var(--ink-2); font-weight: 500; }
 .footer .cs { margin-bottom: var(--sp-14); }
 .footer .cs b { color: var(--ink); }

@@ -91,8 +91,8 @@
   function topbar({ back = false, title = '', right = '' } = {}) {
     const left = back
       ? `<button class="icon-btn" data-action="back" aria-label="뒤로">${UI.icon('back')}</button>${title ? `<h1 class="topbar-title">${esc(title)}</h1>` : ''}`
-      : `<a class="wordmark" href="#/" aria-label="오늘의 취향 홈">${TT.LOGO_HTML}</a><span class="region">${esc(SITE.region)}</span>`;
-    return `<header class="topbar">${left}<span class="spacer"></span>${right}</header>`;
+      : `<a class="wordmark" href="#/" aria-label="오늘의 취향 홈">${TT.LOGO_HTML}</a>`;
+    return `<header class="topbar${back ? '' : ' is-brand'}">${left}<span class="spacer"></span>${right}</header>`;
   }
   const sectionHead = (title, sub, more) => `<div class="section-head"><div><h2>${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div>${more ? `<a class="more" href="${more}">전체 보기${UI.icon('forward', 'icon icon-sm')}</a>` : ''}</div>`;
 
@@ -127,6 +127,7 @@
   function footer() {
     const b = SITE.business;
     return `<footer class="footer">
+      <div class="footer-logo" role="img" aria-label="오늘의 취향">${TT.LOGO_MONO_HTML}</div>
       <div class="links"><a href="#/guide">이용 안내</a><a href="#/policy/terms">이용약관</a><a href="#/policy/privacy"><b>개인정보처리방침</b></a><a href="/admin.html">운영자 로그인</a></div>
       <div class="cs"><b>고객센터</b> <a href="${esc(SITE.kakaoChannelUrl)}" target="_blank" rel="noopener">카카오톡 채널</a> · ${esc(SITE.csHours)}</div>
       <div>${esc(b.company)} · 대표 ${esc(b.ceo)} · 사업자등록번호 ${esc(b.bizNo)}<br>통신판매업 ${esc(b.ecommerceNo)} · ${esc(b.address)} · ${esc(b.email)}</div>
