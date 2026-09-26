@@ -38,7 +38,7 @@
     const route = location.hash.split('?')[0];
     const changed = route !== lastRoute;
     if (changed) { window.scrollTo(0, 0); lastRoute = route; }
-    document.title = document.querySelector('[data-title]')?.dataset.title || '오늘의 취향 — 대구에서 세 명이 만나는 원데이 모임';
+    document.title = document.querySelector('[data-title]')?.dataset.title || '오늘의 취향 — 대구에서 즐기는 소규모 원데이 모임';
     // 화면 전체 대신 바뀐 페이지 제목만 스크린리더에 알린다
     const status = document.getElementById('route-status');
     if (changed && status) status.textContent = document.title;
@@ -139,19 +139,19 @@
   // [제목, 설명, 걸리는 시간]. 홈 "처음이라면"과 이용 안내에서 같이 쓴다
   const STEPS = [
     ['신청 보내기', '일정을 고르고 이름·나이·신청 이유를 적어요.', '3분'],
-    ['운영자 검토', '신청 이유를 읽고 한 테이블에 앉을 세 사람을 정해요.', '보통 24시간 안'],
+    ['운영자 검토', '신청 내용을 확인하고 함께할 참여자 두 분의 자리를 안내해요.', '보통 24시간 안'],
     ['참여 확인', '승인되면 카카오톡으로 링크가 와요. 링크에서 "참여할게요"를 눌러주세요.', '카카오톡'],
     ['입금', '링크에 나온 계좌로 신청자 이름으로 입금해요. 입금이 확인되면 자리가 확정돼요.', '10시간 안'],
     ['모임 당일', '확정 안내에 적힌 장소로 오시면 돼요. 끝나면 후기 링크를 보내드려요.', ''],
   ];
   const stepsList = () => `<ol class="flow">${STEPS.map(([t, d, w]) => `<li><b>${t}</b>${w ? `<span class="when">${w}</span>` : ''}<p>${d}</p></li>`).join('')}</ol>`;
-  const PROMISES = [['한 테이블', '3명', '처음 만난 사이로'], ['승인 안내', '24시간', '보통 이 안에 알려드려요'], ['입금 전 취소', '0원', '비용 없이 취소돼요']];
+  const PROMISES = [['참여 정원', '2명', '진행자 포함 총 3명'], ['승인 안내', '24시간', '보통 이 안에 알려드려요'], ['입금 전 취소', '0원', '비용 없이 취소돼요']];
   const promiseRow = () => `<dl class="promise">${PROMISES.map(([k, v, d]) => `<div><dt>${k}</dt><dd class="serif num">${v}</dd><dd>${d}</dd></div>`).join('')}</dl>`;
 
   // 자주 묻는 질문: 주제별로 나눠 칩으로 고른다. 규칙이 바뀌면(나이·기한·환불) 여기도 고친다
   const FAQ = [
     ['신청', [
-      ['혼자 신청해도 되나요?', '네, 대부분 혼자 오세요. 한 테이블이 최대 세 명이라 처음 만난 사이여도 대화가 금방 시작돼요.\n친구와 함께 오고 싶다면 같은 일정에 각자 신청해 주세요. 승인은 한 사람씩 따로 정해요.'],
+      ['혼자 신청해도 되나요?', '네, 대부분 혼자 오세요. 진행자 1명과 참여자 2명으로 진행되어 어색하지 않고 편안하게 참여할 수 있어요.\n친구와 함께 오고 싶다면 같은 일정에 각자 신청해 주세요. 승인은 한 사람씩 따로 정해요.'],
       ['누가 신청할 수 있나요?', '만 19~35세면 누구나 신청할 수 있어요. 나이가 이 범위를 벗어나면 신청서가 접수되지 않아요.'],
       ['신청 이유는 뭘 쓰면 되나요?', '거창하지 않아도 괜찮아요. 이 모임이 궁금해진 계기나 해보고 싶은 것을 10자 이상 적어주세요.\n예) "향수를 살 때마다 뭘 골라야 할지 몰라서, 제 취향을 알고 싶어요."'],
       ['승인 결과는 어떻게 알 수 있나요?', '운영자가 보통 24시간 안에 신청서를 확인해요. 승인되면 카카오톡으로 참여 확인 링크를 보내드리고, 이번에 함께하기 어려울 때도 카카오톡으로 알려드려요.'],
@@ -200,7 +200,7 @@
     let h = topbar({ right: '<a class="text-link" href="#/guide">이용 안내</a>' });
     h += `<div class="pad"><a class="banner" href="#/guide">
         <img src="/assets/img/brand/home-banner.jpg" alt="" onerror="this.closest('.banner').classList.add('no-photo');this.remove()">
-        <div class="banner-copy"><strong>퇴근 후 두 시간,<br>처음 만난 세 사람과 만드는 취향</strong><span>오늘의 취향은 어떻게 운영되나요 ${UI.icon('forward', 'icon icon-sm')}</span></div>
+        <div class="banner-copy"><strong>일상 속 두 시간,<br>진행자 한 명과 참여자 둘이 나누는 취향</strong><span>오늘의 취향은 어떻게 운영되나요 ${UI.icon('forward', 'icon icon-sm')}</span></div>
       </a></div>`;
     h += `<div class="section filters"><div class="chips hscroll" role="tablist" aria-label="모임 필터">${FILTERS.map(([k, l]) => `<button class="chip${S.filter === k ? ' is-on' : ''}" role="tab" aria-selected="${S.filter === k}" data-action="filter" data-key="${k}">${l}</button>`).join('')}</div></div>`;
     h += `<div class="section find-wrap"><a class="find-entry" href="#/find"><div><b>언제 시간 되세요?</b><span>요일과 시간대를 고르면 맞는 모임을 골라드려요</span></div><span class="find-go">시간대 고르기${UI.icon('forward', 'icon icon-sm')}</span></a></div>`;
@@ -294,7 +294,7 @@
     const schedules = g.schedules || [];
     const sel = schedules.find(s => s.id === S.sel.scheduleId);
     const bands = ['오전', '오후', '저녁'].filter(b => schedules.some(s => TT.band(s.start_time) === b));
-    const cap = schedules[0]?.capacity || 3;
+    const cap = schedules[0]?.capacity || 2;
     const firstOpen = TT.nextSchedule(g);
     const hostInitial = (String(g.host_name || '').split('·').pop().trim() || '?').slice(0, 1);
 
@@ -313,7 +313,7 @@
     </section>`;
     h += `<section class="pad"><ul class="facts">
       <li>${UI.icon('clock')}<div><b>${esc(g.duration)}</b>${bands.length ? `<span>${bands.join('·')} 진행</span>` : ''}</div></li>
-      <li>${UI.icon('users')}<div><b>최대 ${cap}명 · 운영자 승인 후 참여 확정</b>${firstOpen ? `<span>${UI.seats(TT.seatInfo(firstOpen.capacity, firstOpen.remaining))} 가장 가까운 일정 기준</span>` : ''}</div></li>
+      <li>${UI.icon('users')}<div><b>참여 정원 ${cap}명 (진행자 포함 총 3명) · 운영자 승인 후 확정</b>${firstOpen ? `<span>${UI.seats(TT.seatInfo(firstOpen.capacity, firstOpen.remaining))} 가장 가까운 일정 기준</span>` : ''}</div></li>
       <li>${UI.icon('wallet')}<div><b class="num">${won(g.fee)}</b>${g.fee_note ? `<span>${esc(g.fee_note)}</span>` : ''}</div></li>
       <li>${UI.icon('pin')}<div><b>대구 중구 ${esc(g.place)}</b><span>정확한 위치는 참여 확정 후 안내해요</span></div></li>
     </ul></section>`;
@@ -474,7 +474,7 @@
       <section class="pad read guide">
         <img class="guide-photo" src="/assets/img/brand/guide.jpg" alt="" onerror="this.remove()">
         <h1 class="serif">오늘의 취향은 이렇게 운영돼요</h1>
-        <p>대구 중구의 작은 공방과 카페에서 열리는 원데이 모임이에요. 한 모임은 최대 세 명까지만 받아요. 대화와 실습이 충분하도록 운영자가 신청서를 보고 한 테이블을 꾸려요.</p>
+        <p>대구 중구의 작은 공방과 카페에서 열리는 원데이 모임이에요. 진행자 한 명과 참여자 두 명, 총 세 명이 한 테이블에 모여요. 소규모로 진행되어 실습에 온전히 집중할 수 있어요.</p>
         <h2>신청부터 모임 당일까지</h2>${stepsList()}
         <h2>입금과 확정</h2><p>참여를 확정하면 참여 확인 페이지에 입금 계좌와 금액이 표시돼요. 10시간 안에 신청자 이름으로 입금해 주세요. 기한이 지나면 자동으로 취소되고 다음 신청자에게 기회가 넘어가요.</p>
         <h2>취소와 환불</h2><p>입금 전에는 언제든 비용 없이 취소할 수 있어요. 정원이 먼저 찼거나 일정이 취소되면 입금액 전액을 돌려드려요. 입금 후 사정이 생겨 취소할 때는 아래 기준을 따르고, 환불은 3영업일 안에 해드려요. 날짜 기준은 모임일 자정이에요.</p>${bulletList(TT.REFUND_RULES)}<p class="muted">자세한 내용은 <a class="text-link" href="#/policy/terms">이용약관</a> 제9·10조에 있어요.</p>

@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS schedules (
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
   place TEXT NOT NULL,
-  capacity INTEGER NOT NULL DEFAULT 3 CHECK(capacity > 0),
+  capacity INTEGER NOT NULL DEFAULT 2 CHECK(capacity > 0),
   fee INTEGER NOT NULL DEFAULT 0 CHECK(fee >= 0),
   cancelled INTEGER NOT NULL DEFAULT 0,
   occurred INTEGER NOT NULL DEFAULT 0,

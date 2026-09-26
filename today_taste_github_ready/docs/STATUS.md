@@ -4,7 +4,7 @@
 > **기록 범위**: 기능·API·DB·운영 설정처럼 **다른 사람의 작업에 영향을 주는 변경**만 적습니다. 색·여백·문구 같은 디자인 변경은 기능에 영향이 없으므로 적지 않습니다.
 > **갱신 규칙**: 작업할 때마다 이 문서를 함께 갱신합니다(에이전트 지침: `.agents/AGENTS.md` 의 "작업 현황 문서" 절).
 
-**마지막 갱신**: 2026-09-25 · **현재 브랜치 상태**: 개편 작업은 `feat/redesign` 에 있고 **`main` 에 아직 병합되지 않았습니다** (커밋 32개, 테스트 48/48 통과).
+**마지막 갱신**: 2026-09-26 · **현재 브랜치 상태**: 개편 작업은 `feat/redesign` 에 있고 **`main` 에 아직 병합되지 않았습니다** (커밋 31개, 테스트 48/48 통과).
 
 ---
 
@@ -14,6 +14,7 @@
 
 | 구분 | 내용 | 해야 할 일 |
 |---|---|---|
+| 회차 정원 기준 | 한 테이블 구성이 **"진행자 1명 + 참여자 2명 = 총 3명"**으로 명확화됨에 따라 회차 신청 정원(`capacity`) 기본값이 **2명**으로 변경되었습니다 (`schema.sql`, `server.js`, `admin.js`, `scripts/seed-demo.js`). 화면에서도 참여 정원 2명(총 3명)으로 표시됩니다 | 신규 일정 등록 시 기본 정원이 2명으로 적용됩니다 |
 | DB 스키마 | `groups` 에 `cover_url, gallery_json, for_whom_json, includes_json, fee_note, host_bio, host_photo_url, place_note`, `applications` 에 `motivation, marketing_ok, purged_at`, `reviews` 에 `publish_ok, hidden` 컬럼 추가 | 없음 — 서버를 켜면 기존 DB에 자동으로 추가됩니다 |
 | 마이그레이션 위치 | 컬럼 추가 목록이 `lib/migrate.js` 의 `COLUMNS` 한 곳으로 모였습니다 (전에는 server.js와 seed-demo.js에 복제) | 앞으로 컬럼을 추가할 때는 `lib/migrate.js` 와 `schema.sql` 만 고칩니다 |
 | 환경 변수 | `PAYMENT_BANK`, `PAYMENT_ACCOUNT`, `PAYMENT_HOLDER` 추가 (참여 확인 페이지에 표시할 입금 계좌) | 각자 `.env` 에 추가. 비워두면 "운영자가 카카오톡으로 안내" 문구가 나옵니다 |
@@ -40,6 +41,14 @@
 ---
 
 ## 2. 날짜별 구현 기록 (기능·백엔드)
+
+### 2026-09-26 — 타겟층 확대(대학생·청년) 및 정원 기준(진행자 1명 + 참여자 2명) 개편 (`feat/redesign`, 미병합)
+
+- DB: 스케줄 기본 신청 정원 `capacity` 를 `DEFAULT 2` 로 변경 (`schema.sql`)
+- 서버/API: 일정 생성 시 기본 정원 fallback을 2명으로 수정 (`server.js`)
+- 신청자 화면: '퇴근 후' 직장인 한정 문구를 일상 속 취향 모임으로 변경, 진행자 1명 + 참여자 2명 구조로 홈 배너·약속·FAQ·모임 상세·이용 안내 문구 전면 개편 (`app.js`, `index.html`)
+- 운영콘솔: 일정 등록 모달의 기본 정원을 2명으로 변경 (`admin.js`)
+- 개발 환경: 데모 시드 데이터 정원(2명) 및 관련 소개 문구 일치화 (`scripts/seed-demo.js`), 테스트 전체 통과 (48/48)
 
 ### 2026-09-25 — 사진 업로드 (`feat/redesign`, 미병합)
 

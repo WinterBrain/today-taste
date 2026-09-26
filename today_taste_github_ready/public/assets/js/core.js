@@ -33,7 +33,7 @@
   const cellKey = s => dayBucket(s.date) + '|' + band(s.start_time);
 
   function seatInfo(capacity, remaining) {
-    const total = Math.max(1, Number(capacity) || 3);
+    const total = Math.max(1, Number(capacity) || 2);
     const left = Math.max(0, Math.min(total, Number(remaining) || 0));
     return { total, left, filled: total - left, label: left ? `${left}자리 남음` : '마감', last: left === 1, full: left === 0 };
   }
