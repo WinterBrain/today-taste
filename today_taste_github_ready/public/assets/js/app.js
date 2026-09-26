@@ -200,7 +200,7 @@
     let h = topbar({ right: '<a class="text-link" href="#/guide">이용 안내</a>' });
     h += `<div class="pad"><a class="banner" href="#/guide">
         <img src="/assets/img/brand/home-banner.jpg" alt="" onerror="this.closest('.banner').classList.add('no-photo');this.remove()">
-        <div class="banner-copy"><strong>일상 속 두 시간,<br>진행자 한 명과 참여자 둘이 나누는 취향</strong><span>오늘의 취향은 어떻게 운영되나요 ${UI.icon('forward', 'icon icon-sm')}</span></div>
+        <div class="banner-copy"><strong>부담 없이 딱 두 시간, 셋이서<br>오늘 새로운 취향을 발견해보세요</strong><span>오늘의 취향은 어떻게 운영되나요 ${UI.icon('forward', 'icon icon-sm')}</span></div>
       </a></div>`;
     h += `<div class="section filters"><div class="chips hscroll" role="tablist" aria-label="모임 필터">${FILTERS.map(([k, l]) => `<button class="chip${S.filter === k ? ' is-on' : ''}" role="tab" aria-selected="${S.filter === k}" data-action="filter" data-key="${k}">${l}</button>`).join('')}</div></div>`;
     h += `<div class="section find-wrap"><a class="find-entry" href="#/find"><div><b>언제 시간 되세요?</b><span>요일과 시간대를 고르면 맞는 모임을 골라드려요</span></div><span class="find-go">시간대 고르기${UI.icon('forward', 'icon icon-sm')}</span></a></div>`;

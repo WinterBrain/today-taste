@@ -1,6 +1,7 @@
 # 오늘의 취향 - 실제 DB/API 연동 버전
 
 > **현재 작업 현황·공유 사항·할 일은 [docs/STATUS.md](docs/STATUS.md) 를 먼저 보세요.** 기능·API·DB·운영 설정을 바꾸면 이 문서도 함께 갱신합니다.
+> **서비스 컨셉(최대 3명 원데이 클래스, 20대 중심)과 결정 기준은 [docs/CONCEPT.md](docs/CONCEPT.md) 에 있습니다.** 기능·디자인을 정하기 전에 읽어 주세요.
 
 이 폴더는 정적 프로토타입이 아니라 **Node.js + Express + SQLite(better-sqlite3)** 로 동작하는 실행 가능한 버전입니다.
 
