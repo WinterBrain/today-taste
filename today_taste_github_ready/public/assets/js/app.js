@@ -192,6 +192,9 @@
 
   const nextKey = g => { const n = TT.nextSchedule(g); return n ? n.date + n.start_time : '9999'; };
 
+  // 배너 제목 끝의 작은 별표(로고 "취"의 ㅊ 모티프)
+  const BANNER_STAR = '<svg class="banner-star" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"><path d="M50 58l29.5-9.6M50 58l18.2 25.1M50 58l-18.2 25.1M50 58l-29.5-9.6"/></g><circle cx="50" cy="26" r="11" fill="currentColor"/></svg>';
+
   routes[''] = function renderHome() {
     const t = today();
     const openGroups = S.groups.filter(g => TT.openSchedules(g).length);
@@ -205,7 +208,7 @@
     let h = topbar({ right: '<a class="text-link" href="#/guide">이용 안내</a>' });
     h += `<div class="pad"><a class="banner" href="#/guide">
         <img src="/assets/img/brand/home-banner.jpg" alt="" onerror="this.closest('.banner').classList.add('no-photo');this.remove()">
-        <div class="banner-copy"><strong>부담 없이 딱 두 시간, 셋이서<br>오늘 새로운 취향을 발견해보세요</strong><span>처음이라면 여기부터 보세요 ${UI.icon('forward', 'icon icon-sm')}</span></div>
+        <div class="banner-copy"><div class="banner-head"><ul class="banner-tags"><li>원데이</li><li>취미공유</li><li>최대 3명</li></ul><strong>하루 딱 두 시간,<br>오늘 <mark>새로운 취향</mark>을<br>발견해보세요${BANNER_STAR}</strong></div><span>참여 방법 알아보기 ${UI.icon('forward', 'icon icon-sm')}</span></div>
       </a></div>`;
     h += `<div class="section filters"><div class="chips hscroll" role="tablist" aria-label="모임 필터">${FILTERS.map(([k, l]) => `<button class="chip${S.filter === k ? ' is-on' : ''}" role="tab" aria-selected="${S.filter === k}" data-action="filter" data-key="${k}">${l}</button>`).join('')}</div></div>`;
     h += `<div class="section find-wrap"><a class="find-entry" href="#/find"><div><b>언제 시간 되세요?</b><span>요일과 시간대를 고르면 맞는 모임을 골라드려요</span></div><span class="find-go">시간대 고르기${UI.icon('forward', 'icon icon-sm')}</span></a></div>`;

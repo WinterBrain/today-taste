@@ -42,6 +42,8 @@
   --photo-btn: rgba(255, 255, 255, .92);   /* 사진 위 원형 버튼 */
   --photo-btn-ink: #1B1918;                /* 사진 위 원형 버튼 아이콘 */
   --photo-empty: #2A2522;                  /* 사진을 불러오기 전 배너 바탕 */
+  --on-photo-ink: #1B1918;                 /* 밝은 사진 위 글자(홈 배너) */
+  --photo-mark: #FFD9C9;                   /* 밝은 사진 위 형광펜 강조(홈 배너 핵심어) */
 
   /* 2. 글꼴 */
   --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;  /* 기본 글꼴 */
@@ -58,7 +60,7 @@
   --fs-20: 20px;  /* 섹션 제목 */
   --fs-24: 24px;  /* 페이지 제목 */
   --fs-28: 28px;  /* 큰 숫자·대체 커버 글자 */
-  --fs-banner: 21px;  /* 홈 배너 문구 */
+  --fs-banner: clamp(16px, 5.6cqi, 23px);  /* 홈 배너 문구 (배너 폭에 맞춰 줄어듦, .banner 가 container) */
 
   /* 4. 모서리 반경 */
   --r-bar: 2px;       /* 막대 그래프 */
