@@ -81,6 +81,20 @@ body { background: var(--bg-sunken); font-size: var(--fs-14); }
 .input { width: 100%; min-height: 40px; padding: var(--sp-8) var(--sp-12); border: 1px solid var(--line); border-radius: var(--r-control); background: var(--bg); }
 .input:focus { outline: none; border-color: var(--ink); }
 textarea.input { line-height: 1.6; resize: vertical; }
+select.input { appearance: none; -webkit-appearance: none; padding-right: var(--sp-36); background: var(--bg) var(--select-arrow) no-repeat right var(--sp-10) center / 18px 18px; cursor: pointer; transition: border-color var(--dur-fast); }
+select.input:hover:not(:disabled) { border-color: var(--ink-3); }
+select.input:focus { border-color: var(--ink); }
+select.input:disabled { background-color: var(--bg-sunken); color: var(--ink-3); cursor: not-allowed; }
+/* 펼친 목록: 지원 브라우저(Chrome·Edge 135+)만 꾸미고, 나머지는 브라우저 기본 목록을 쓴다 */
+@supports (appearance: base-select) {
+  select.input, select.input::picker(select) { appearance: base-select; }
+  select.input::picker-icon { display: none; }
+  select.input::picker(select) { margin-top: var(--sp-4); padding: var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-control); background: var(--bg); }
+  select.input option { display: flex; align-items: center; gap: var(--sp-8); min-height: 36px; padding: var(--sp-6) var(--sp-10); border-radius: var(--r-tag); color: var(--ink-2); cursor: pointer; }
+  select.input option:hover, select.input option:focus-visible { background: var(--bg-sunken); color: var(--ink); outline: none; }
+  select.input option:checked { color: var(--ink); font-weight: 600; }
+  select.input option::checkmark { order: 1; margin-left: auto; color: var(--accent); }
+}
 .field { display: grid; gap: var(--sp-4); margin-bottom: var(--sp-4); }
 .field label { font-size: var(--fs-13); font-weight: 600; }
 .field .hint { font-size: var(--fs-12); color: var(--ink-3); }

@@ -111,6 +111,9 @@
   /* 8. 움직임 */
   --dur-fast: .15s;   /* 펼침 아이콘 회전 등 짧은 전환 */
 
+  /* 9. 그림 */
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%238A8481' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");  /* 드롭다운 화살표 (--ink-3 회색, 다크에서도 그대로) */
+
   color-scheme: light;
 }
 
