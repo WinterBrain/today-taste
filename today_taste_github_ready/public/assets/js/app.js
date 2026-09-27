@@ -37,13 +37,44 @@
   function afterRender() {
     const route = location.hash.split('?')[0];
     const changed = route !== lastRoute;
-    if (changed) { window.scrollTo(0, 0); lastRoute = route; }
+    if (changed) { window.scrollTo(0, 0); lastRoute = route; animateRoute(); }
     document.title = document.querySelector('[data-title]')?.dataset.title || '오늘의 취향 — 대구에서 즐기는 소규모 원데이 모임';
     // 화면 전체 대신 바뀐 페이지 제목만 스크린리더에 알린다
     const status = document.getElementById('route-status');
     if (changed && status) status.textContent = document.title;
     const track = document.querySelector('[data-gallery]'), count = document.querySelector('[data-gallery-count]');
     if (track && count) track.addEventListener('scroll', () => { count.textContent = `${Math.round(track.scrollLeft / track.clientWidth) + 1}/${track.children.length}`; }, { passive: true });
+  }
+
+  // 등장 효과는 화면을 옮겼을 때만 준다(상태만 바뀌어 다시 그릴 때 화면 전체가 다시 움직이지 않게).
+  // 첫 화면 안의 덩어리는 차례로 올라오고, 아래쪽 덩어리는 스크롤해서 보일 때 올라온다. data-stagger 덩어리는 안쪽 항목이 하나씩 올라온다
+  function animateRoute() {
+    if (UI.reducedMotion()) return;
+    let i = 0;
+    for (const el of $app.children) {
+      if (el.matches('.topbar, [data-title]')) continue;
+      if (el.matches('.bottom-bar')) { UI.animateIn(el); continue; }
+      if (el.getBoundingClientRect().top >= window.innerHeight) { el.classList.add('reveal'); continue; }
+      for (const t of el.hasAttribute('data-stagger') ? el.children : [el]) UI.animateIn(t, i++);
+    }
+  }
+  // 화면 아래 끝(8% 안쪽)보다 위로 올라온 숨은 덩어리를 보인다. 한 번에 끝까지 내려 지나친 덩어리도 함께 보인다
+  let revealQueued = false;
+  function revealPassed() {
+    revealQueued = false;
+    const line = window.innerHeight * 0.92;
+    document.querySelectorAll('.reveal').forEach(el => {
+      if (el.getBoundingClientRect().top < line) { el.classList.remove('reveal'); UI.animateIn(el); }
+    });
+  }
+
+  // 선택 버튼은 누르면 화면을 다시 그리므로, 다시 그린 뒤 같은 버튼을 찾아 '방금 누름'(.is-tapped)을 붙인다. 선택될 때만 톡 튀는 효과가 난다
+  const TAP_KEYS = ['action', 'key', 'val', 'id', 'date', 'i'];
+  const tapSelector = el => TAP_KEYS.filter(k => el.dataset[k] != null).map(k => `[data-${k}="${CSS.escape(el.dataset[k])}"]`).join('');
+  function markTapped(selector) {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    el.classList.remove('is-tapped'); void el.offsetWidth; el.classList.add('is-tapped');
   }
 
   window.addEventListener('hashchange', () => { UI.closeSheet(); render(); });
@@ -55,13 +86,16 @@
     span.className = 'host-photo initial'; span.textContent = img.dataset.initial || '';
     img.replaceWith(span);
   }, true);
-  window.addEventListener('scroll', () => document.querySelector('.topbar')?.classList.toggle('is-scrolled', window.scrollY > 4), { passive: true });
+  window.addEventListener('scroll', () => {
+    document.querySelector('.topbar')?.classList.toggle('is-scrolled', window.scrollY > 4);
+    if (!revealQueued) { revealQueued = true; requestAnimationFrame(revealPassed); }
+  }, { passive: true });
 
   document.addEventListener('click', e => {
     const goEl = e.target.closest('[data-go]');
     if (goEl) { e.preventDefault(); go(goEl.dataset.go); return; }
     const a = e.target.closest('[data-action]');
-    if (a && actions[a.dataset.action]) { e.preventDefault(); actions[a.dataset.action](a, e); }
+    if (a && actions[a.dataset.action]) { e.preventDefault(); const sel = tapSelector(a); actions[a.dataset.action](a, e); markTapped(sel); }
   });
 
   // 외부에서 상세 링크로 바로 들어온 경우(history.length === 1) 홈으로 보낸다
@@ -130,12 +164,25 @@
   function footer() {
     const b = SITE.business;
     return `<footer class="footer">
-      <div class="footer-logo" role="img" aria-label="오늘의 취향">${TT.LOGO_MONO_HTML}</div>
+      <div class="footer-top"><div class="footer-logo" role="img" aria-label="오늘의 취향">${TT.LOGO_MONO_HTML}</div>${themeButton()}</div>
       <div class="links"><a href="#/guide">이용 안내</a><a href="#/policy/terms">이용약관</a><a href="#/policy/privacy"><b>개인정보처리방침</b></a><a href="/admin.html">운영자 로그인</a></div>
       <div class="cs"><b>고객센터</b> <a href="${esc(SITE.kakaoChannelUrl)}" target="_blank" rel="noopener">카카오톡 채널</a> · ${esc(SITE.csHours)}</div>
       <div>${esc(b.company)} · 대표 ${esc(b.ceo)} · 사업자등록번호 ${esc(b.bizNo)}<br>통신판매업 ${esc(b.ecommerceNo)} · ${esc(b.address)} · ${esc(b.email)}</div>
     </footer>`;
   }
+  // 화면 테마 스위치: 해(라이트) | 달(다크) 아이콘만. 손잡이(.theme-tabs::before)가 지금 테마 쪽에 있다
+  function themeButton() {
+    const now = TTTheme.current();
+    return `<div class="theme-tabs" role="radiogroup" aria-label="화면 테마" data-now="${now}">${[['light', 'sun', '라이트 모드'], ['dark', 'moon', '다크 모드']].map(([t, ic, label]) =>
+      `<button type="button" role="radio" aria-checked="${now === t}" aria-label="${label}" data-action="setTheme" data-val="${t}">${UI.icon(ic, 'icon icon-sm')}</button>`).join('')}</div>`;
+  }
+  // 다시 그리지 않고 속성만 바꿔야 손잡이가 좌우로 미끄러진다. 이미 고른 쪽을 누르면 반대로 바꾼다(스위치처럼)
+  actions.setTheme = el => {
+    const tabs = el.closest('.theme-tabs');
+    const t = TTTheme.set(el.dataset.val === TTTheme.current() ? (el.dataset.val === 'dark' ? 'light' : 'dark') : el.dataset.val);
+    tabs.dataset.now = t;
+    tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', b.dataset.val === t));
+  };
   function faqList(items) {
     return `<div class="faq">${items.map(([q, a]) => `<details><summary><span>${esc(q)}</span>${UI.icon('plus', 'icon icon-sm')}</summary><p>${esc(a)}</p></details>`).join('')}</div>`;
   }
@@ -178,7 +225,7 @@
       ['늦거나 못 가게 되면요?', '늦을 것 같다면 카카오톡 채널로 미리 알려주세요.\n못 가게 됐다면 되도록 빨리 취소해 주세요. 취소 시점에 따라 돌려받는 금액이 달라지고, 연락 없이 오지 않으면 환불되지 않아요.'],
     ]],
   ];
-  actions.faqTab = el => { S.faqTab = Number(el.dataset.i); render(); };
+  actions.faqTab = el => { S.faqTab = Number(el.dataset.i); render(); UI.staggerIn('.faq details'); };
   function faqBlock() {
     const i = S.faqTab || 0;
     return `<div class="chips faq-tabs" role="tablist" aria-label="질문 주제">${FAQ.map(([t], n) => `<button class="chip${n === i ? ' is-on' : ''}" role="tab" aria-selected="${n === i}" data-action="faqTab" data-i="${n}">${t}</button>`).join('')}</div>
@@ -188,7 +235,7 @@
   /* ---------- 홈 ---------- */
 
   const FILTERS = [['all', '전체'], ['weekend', '이번 주말'], ['weeknight', '평일 저녁'], ['make', '만들기'], ['learn', '배우기'], ['closing', '마감 임박']];
-  actions.filter = el => { S.filter = el.dataset.key; render(); };
+  actions.filter = el => { S.filter = el.dataset.key; render(); UI.staggerIn('.grid2 > .gcard, .section > .empty'); };
 
   const nextKey = g => { const n = TT.nextSchedule(g); return n ? n.date + n.start_time : '9999'; };
 
@@ -239,7 +286,7 @@
     const open = (g.schedules || []).filter(s => s.date === date && Number(s.remaining) > 0);
     return open.length === 1 ? open[0].id : null;
   }
-  actions.pickDate = el => { S.sel.date = el.dataset.date; S.sel.scheduleId = soleSession(byId(S.sel.groupId), S.sel.date); render(); };
+  actions.pickDate = el => { S.sel.date = el.dataset.date; S.sel.scheduleId = soleSession(byId(S.sel.groupId), S.sel.date); render(); UI.staggerIn('.sessions > *'); };
   actions.pickSchedule = el => { S.sel.scheduleId = Number(el.dataset.id); render(); };
   actions.apply = () => {
     if (!S.sel.scheduleId) {
@@ -380,7 +427,7 @@
           <label class="agree"><input type="checkbox" data-agree="agreeMarketing" ${f.agreeMarketing ? 'checked' : ''}><span><em>선택</em> 새 모임 소식 받기 (광고성 정보 수신 동의)</span><button type="button" class="text-link" data-action="policy" data-tab="marketing">보기</button></label>
         </div>
       </form>
-      <div class="bottom-bar"><button class="btn btn-primary btn-block" data-action="submit" ${S.submitting ? 'disabled' : ''}>${S.submitting ? '보내는 중…' : '신청 보내기'}</button></div>`;
+      <div class="bottom-bar"><button class="btn btn-primary btn-block${S.submitting ? ' is-loading' : ''}" data-action="submit" ${S.submitting ? 'disabled' : ''}>${S.submitting ? '보내는 중…' : '신청 보내기'}</button></div>`;
   }
   actions.choose = el => { S.form[el.dataset.key] = el.dataset.val; delete S.errors[el.dataset.key]; render(); };
   document.addEventListener('input', e => {
@@ -401,7 +448,7 @@
   });
   actions.submit = async () => {
     S.errors = TT.validateApply(S.form);
-    if (Object.keys(S.errors).length) { render(); focusFirstError(); return; }
+    if (Object.keys(S.errors).length) { render(); focusFirstError(); UI.staggerIn('.field-err'); return; }
     const g = byId(S.sel.groupId), s = g.schedules.find(x => x.id === S.sel.scheduleId);
     S.submitting = true; render();
     try {
@@ -436,7 +483,7 @@
     if (!d) { setTimeout(() => go('#/'), 0); return ''; }
     const steps = [['신청 접수', '지금'], ['진행자 확인', '보통 24시간 안에 확인해요'], ['참여 확인', '카카오톡으로 링크를 보내드려요'], ['입금 후 확정', '참여 확정 후 10시간 안에 입금해 주세요']];
     return `<div data-title="신청 완료 — 오늘의 취향"></div>` + topbar({}) + `
-      <section class="pad done">
+      <section class="pad done" data-stagger>
         <span class="done-mark">${UI.icon('check')}</span>
         <h1 class="heading">신청이 접수됐어요</h1>
         <p class="muted">${esc(d.name)}님, 진행자가 확인하면 카카오톡으로 알려드릴게요.</p>
@@ -450,13 +497,14 @@
   /* ---------- 시간대로 찾기 ---------- */
 
   const DAYS = ['평일', '토', '일'], BANDS = ['오전', '오후', '저녁'];
-  actions.cell = el => { const k = el.dataset.key; S.find.cells.has(k) ? S.find.cells.delete(k) : S.find.cells.add(k); S.find.randomId = null; render(); };
+  actions.cell = el => { const k = el.dataset.key; S.find.cells.has(k) ? S.find.cells.delete(k) : S.find.cells.add(k); S.find.randomId = null; render(); UI.staggerIn(FIND_RESULTS); };
   actions.randomPick = () => {
     const pool = S.groups.filter(g => TT.openSchedules(g).some(s => S.find.cells.has(TT.cellKey(s))) && g.id !== S.find.randomId);
     if (pool.length) S.find.randomId = pool[Math.floor(Math.random() * pool.length)].id;
-    render();
+    render(); UI.staggerIn(FIND_RESULTS);
   };
-  actions.showAllMatched = () => { S.find.randomId = null; render(); };
+  actions.showAllMatched = () => { S.find.randomId = null; render(); UI.staggerIn(FIND_RESULTS); };
+  const FIND_RESULTS = '.grid2 > .gcard, .section > .empty';
   routes.find = function () {
     const matched = S.groups.filter(g => TT.openSchedules(g).some(s => S.find.cells.has(TT.cellKey(s))));
     const picked = S.find.randomId ? matched.filter(g => g.id === S.find.randomId) : matched;

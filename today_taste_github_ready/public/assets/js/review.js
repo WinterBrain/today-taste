@@ -29,6 +29,8 @@
       const k = s.dataset.k; score[k] = Number(s.dataset.n);
       const group = box.querySelector(`[data-stars="${k}"]`);
       group.outerHTML = stars(k, group.getAttribute('aria-label'), group.classList.contains('is-big'));
+      // 고른 점수까지 별이 왼쪽부터 차례로 톡 켜진다
+      box.querySelectorAll(`[data-stars="${k}"] .is-on`).forEach((b, i) => { b.style.setProperty('--i', i); b.classList.add('is-tapped'); });
       return;
     }
     const btn = e.target.closest('[data-submit]'); if (!btn) return;

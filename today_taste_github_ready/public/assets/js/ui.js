@@ -20,6 +20,8 @@
     external: '<path d="M14 3h7v7"/><path d="M10 14L21 3"/><path d="M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/>',
     menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
   };
   const icon = (name, cls = 'icon') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[name] || ''}</svg>`;
 
@@ -52,17 +54,44 @@
     return j;
   }
 
+  /* 움직임. 효과 자체는 app.css 의 '움직임' 절에 있고, 여기서는 클래스만 붙인다 */
+  const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // 요소를 아래에서 올라오며 나타나게 한다. i 는 차례(간격 --stagger), 너무 늦어지지 않게 8에서 멈춘다
+  function animateIn(el, i = 0) {
+    if (!el) return;
+    el.style.setProperty('--i', Math.min(i, 8));
+    if (el.classList.contains('enter')) { el.classList.remove('enter'); void el.offsetWidth; }
+    el.classList.add('enter');
+  }
+  // iOS 사파리는 터치 이벤트를 받는 곳이 하나도 없으면 :active(누르는 동안 줄어드는 효과)를 적용하지 않는다
+  document.addEventListener('touchstart', () => {}, { passive: true });
+  const staggerIn =(selector, root = document) => root.querySelectorAll(selector).forEach((el, i) => animateIn(el, i));
+  // 나가는 효과(cls)가 끝난 뒤 지운다. 효과가 꺼져 있거나 끝 이벤트가 오지 않아도 지워지게 시간 제한을 둔다
+  function removeAfter(el, cls) {
+    if (reducedMotion()) { el.remove(); return; }
+    el.classList.add(cls);
+    el.addEventListener('animationend', () => el.remove(), { once: true });
+    setTimeout(() => el.remove(), 500);
+  }
+
   function toast(msg) {
     document.querySelector('.toast')?.remove();
     const el = document.createElement('div');
     el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = msg;
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 2400);
+    setTimeout(() => { if (el.isConnected) removeAfter(el, 'is-leaving'); }, 2200);
   }
 
-  function closeSheet() { document.querySelector('.sheet-back')?.remove(); document.body.classList.remove('no-scroll'); }
+  // instant: 다른 시트를 바로 열 때처럼 나가는 효과 없이 지운다
+  function closeSheet(instant) {
+    document.body.classList.remove('no-scroll');
+    document.querySelectorAll('.sheet-back').forEach(back => {
+      if (instant === true) back.remove();
+      else if (!back.classList.contains('is-closing')) removeAfter(back, 'is-closing');
+    });
+  }
   function openSheet(title, html) {
-    closeSheet();
+    closeSheet(true);
     const back = document.createElement('div');
     back.className = 'sheet-back';
     back.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sheet-head"><h2>${esc(title)}</h2><button class="icon-btn" data-sheet-close aria-label="닫기">${icon('close')}</button></div><div class="sheet-body">${html}</div></div>`;
@@ -81,6 +110,13 @@
 
   // 링크 페이지 헤더의 로고 자리(data-logo)를 채운다
   document.querySelectorAll("[data-logo]").forEach(el => { el.innerHTML = TT.LOGO_HTML; });
+  // 링크 페이지 본문(#box)이 새로 그려질 때마다 항목이 차례로 올라온다(안쪽 일부만 바뀌는 별점·남은 시간은 해당 없음)
+  const linkBox = document.getElementById('box');
+  if (linkBox) new MutationObserver(() => {
+    if (reducedMotion()) return;
+    staggerIn('.link-body > :not(.bottom-bar), :scope > .empty', linkBox);
+    linkBox.querySelectorAll('.bottom-bar').forEach(b => animateIn(b));
+  }).observe(linkBox, { childList: true });
 
-  window.UI = { icon, seats, cover, api, toast, openSheet, closeSheet, copy };
+  window.UI = { icon, seats, cover, api, toast, openSheet, closeSheet, copy, reducedMotion, animateIn, staggerIn };
 })();

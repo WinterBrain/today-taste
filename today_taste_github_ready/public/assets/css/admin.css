@@ -157,3 +157,14 @@ select.input:disabled { background-color: var(--bg-sunken); color: var(--ink-3);
   .grid2 { grid-template-columns: 1fr; }
   .pc-only-note { display: block; }
 }
+
+/* 움직임 (규칙은 app.css '움직임' 절과 같다. 동작 줄이기 설정이면 tokens.css 가 끈다) */
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes modal-in { from { opacity: 0; translate: 0 var(--rise); } }
+.btn, .side nav button, .side .sitelink, .input { transition: background-color var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast), scale var(--dur-fast) var(--ease-out), filter var(--dur-fast); }
+.btn:active:not([disabled]) { scale: var(--press); }
+.btn.primary:hover:not([disabled]) { filter: brightness(1.07); }
+.btn.outline:hover:not([disabled]), .btn.danger:hover:not([disabled]), .btn.amber:hover:not([disabled]) { background: var(--bg-sunken); }
+#appRows td { transition: background-color var(--dur-fast); }
+.modalBack { animation: fade-in var(--dur) var(--ease-out); }
+.modal, .loginCard { animation: modal-in var(--dur-slow) var(--ease-out); }
