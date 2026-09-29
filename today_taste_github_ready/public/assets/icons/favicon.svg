@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 오늘의 취향 심볼: 로고 '취'의 ㅊ을 별표로 그린 것(12시는 점). 주홍 타일 위 흰색 -->
+  <rect width="100" height="100" rx="22" fill="#E4572E"/>
+  <g transform="translate(12 12) scale(.826) translate(-4 -6)" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round">
+    <path d="M50 58l29.5-9.6M50 58l18.2 25.1M50 58l-18.2 25.1M50 58l-29.5-9.6"/>
+    <circle cx="50" cy="26" r="12.3" fill="#FFFFFF" stroke="none"/>
+  </g>
+</svg>

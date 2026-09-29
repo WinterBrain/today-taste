@@ -1,1 +1,22 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>평가 · 오늘의 취향</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="/assets/css/style.css"></head><body class="link-page"><div class="link-shell" id="box">불러오는 중...</div><script>const t=location.pathname.split('/').pop();async function load(){let r=await fetch('/api/public/review/'+t),j=await r.json();if(!r.ok)return box.innerHTML='<h2>'+j.error+'</h2>';box.innerHTML=`<h2>${j.group_name} 평가</h2><p>${j.name} 님, 1분 정도면 끝나요.</p>${['satisfaction:전체 만족도','revisit:재참여 의향','progress:진행','place:장소','value:가격 만족'].map(x=>{let [k,l]=x.split(':');return `<div class="link-field"><label>${l}</label><select id="${k}">${[5,4,3,2,1].map(n=>`<option value="${n}">${n}점</option>`).join('')}</select></div>`}).join('')}<div class="link-field"><label>자유 의견</label><textarea id="text"></textarea></div><div class="link-field"><label><input type="checkbox" id="report"> 문제 신고</label><textarea id="reportText" placeholder="신고 내용"></textarea></div><button class="link-submit" onclick="submitReview()">평가 제출</button>`}async function submitReview(){let b={};for(let k of ['satisfaction','revisit','progress','place','value'])b[k]=Number(document.getElementById(k).value);b.text=document.getElementById('text').value;b.report=document.getElementById('report').checked;b.report_text=document.getElementById('reportText').value;let r=await fetch('/api/public/review/'+t,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}),j=await r.json();if(!r.ok)return alert(j.error);box.innerHTML='<h2>평가가 제출됐어요. 감사합니다.</h2>'}load();</script></body></html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<title>후기 남기기 — 오늘의 취향</title>
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<script src="/assets/js/theme.js"></script>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+<div class="shell link-page" id="app"><header class="topbar is-brand"><a class="wordmark" href="/" aria-label="오늘의 취향 홈" data-logo></a></header><div class="pad" id="box"><div class="skel" style="height:220px;margin-top:16px"></div></div></div>
+<script src="/assets/js/site-config.js"></script>
+<script src="/assets/js/core.js"></script>
+<script src="/assets/js/ui.js"></script>
+<script src="/assets/js/review.js"></script>
+</body>
+</html>

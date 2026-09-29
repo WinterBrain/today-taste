@@ -10,5 +10,8 @@ services:
       DB_PATH: /app/data/today_taste.sqlite
       JWT_SECRET: ${JWT_SECRET:-change-this-before-production}
       TRUST_PROXY: 0
+      PAYMENT_BANK: ${PAYMENT_BANK:-}
+      PAYMENT_ACCOUNT: ${PAYMENT_ACCOUNT:-}
+      PAYMENT_HOLDER: ${PAYMENT_HOLDER:-}
     volumes:
       - ./data:/app/data

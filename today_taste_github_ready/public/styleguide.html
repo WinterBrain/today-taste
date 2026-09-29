@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>디자인 토큰 — 오늘의 취향</title>
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/app.css">
+<style>
+  /* 이 페이지 전용 배치. 견본의 색·크기는 모두 tokens.css 에서 읽는다. */
+  body { background: var(--bg); }
+  .sg { max-width: 960px; margin: 0 auto; padding: var(--sp-32) var(--sp-20) var(--sp-64); }
+  .sg-head { display: flex; align-items: flex-end; gap: var(--sp-12); flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: var(--sp-20); }
+  .sg-head h1 { margin: 0; font-size: var(--fs-28); }
+  .sg-head p { margin: var(--sp-4) 0 0; color: var(--ink-3); font-size: var(--fs-14); }
+  .sg-head .spacer { flex: 1; }
+  .sg-theme { display: flex; gap: var(--sp-4); }
+  .sg h2 { font-size: var(--fs-20); margin: var(--sp-40) 0 var(--sp-12); }
+  .sg-note { color: var(--ink-3); font-size: var(--fs-14); margin: 0 0 var(--sp-12); }
+  .sg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--sp-12); }
+  .sg-tok { border: 1px solid var(--line); border-radius: var(--r-btn); overflow: hidden; background: var(--bg); }
+  .sg-tok .sw { height: 64px; border-bottom: 1px solid var(--line); }
+  .sg-tok .sw.checker { background-image: linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%), linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%); background-size: 16px 16px; background-position: 0 0, 8px 8px; position: relative; }
+  .sg-tok .sw.checker i { position: absolute; inset: 0; }
+  .sg-tok .meta { padding: var(--sp-10) var(--sp-12); display: grid; gap: var(--sp-2); font-size: var(--fs-13); }
+  .sg-tok code, .sg-row code { font-family: var(--mono); font-size: var(--fs-13); color: var(--ink); }
+  .sg-tok .val, .sg-row .val { color: var(--ink-3); font-family: var(--mono); font-size: var(--fs-12); }
+  .sg-tok .desc, .sg-row .desc { color: var(--ink-2); }
+  .sg-rows { display: grid; border-top: 1px solid var(--line); }
+  .sg-row { display: grid; grid-template-columns: 160px 1fr 200px; gap: var(--sp-12); align-items: center; padding: var(--sp-12) 0; border-bottom: 1px solid var(--line); font-size: var(--fs-14); }
+  .sg-row .demo { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .sg-box { width: 72px; height: 48px; background: var(--accent-soft); border: 1px solid var(--accent); }
+  .sg-comp { display: flex; gap: var(--sp-12); flex-wrap: wrap; align-items: center; padding: var(--sp-16); border: 1px solid var(--line); border-radius: var(--r-btn); margin-bottom: var(--sp-12); }
+  .sg-comp > small { width: 100%; color: var(--ink-3); font-size: var(--fs-13); }
+  @media (max-width: 640px) { .sg-row { grid-template-columns: 1fr; gap: var(--sp-4); } }
+</style>
+</head>
+<body>
+<main class="sg">
+  <header class="sg-head">
+    <div>
+      <h1 class="heading">디자인 토큰</h1>
+      <p>기준 파일 <code>public/assets/css/tokens.css</code> 를 그대로 읽어 그립니다. 값을 바꾸면 이 페이지도 따라 바뀝니다.</p>
+    </div>
+    <span class="spacer"></span>
+    <div class="sg-theme" role="group" aria-label="테마">
+      <button class="chip" data-theme-set="">시스템</button>
+      <button class="chip" data-theme-set="light">라이트</button>
+      <button class="chip" data-theme-set="dark">다크</button>
+    </div>
+  </header>
+  <div id="tokens"><p class="sg-note">불러오는 중…</p></div>
+
+  <h2>공용 규칙</h2>
+  <ul class="bullets">
+    <li>포인트 컬러는 <code>--accent</code> 하나만 씁니다. 상태색(<code>--ok</code>·<code>--warn</code>·<code>--danger</code>)은 상태 표시에만 씁니다.</li>
+    <li>UI에 이모지를 쓰지 않습니다. 아이콘은 <code>ui.js</code> 의 인라인 SVG(선 1.75px)를 씁니다.</li>
+    <li>여백(padding·margin·gap)은 <code>--sp-숫자</code> 토큰만 씁니다(숫자 = px). 4px 단위가 기본이고 2px 단위는 세밀한 맞춤용입니다.</li>
+    <li>숫자(가격·시간·인원)에는 <code>.num</code>(고정폭 숫자)을 붙입니다. 페이지 제목·모임 이름은 <code>.heading</code>(Pretendard 800). 로고는 SVG(<code>TT.LOGO_SVG</code>, <code>core.js</code>).</li>
+    <li>CSS 파일에는 색·반경·글자 크기·z-index·여백 값을 직접 쓰지 않고 토큰을 씁니다. <code>npm test</code> 가 검사합니다. 전체 규칙은 <code>.agents/AGENTS.md</code> 의 "디자인 작업 규칙".</li>
+  </ul>
+
+  <h2>신청자 앱 컴포넌트</h2>
+  <p class="sg-note"><code>app.css</code> 의 실제 클래스입니다. 운영콘솔(<code>admin.css</code>)은 같은 토큰을 쓰지만 버튼·입력칸이 더 작고(높이 40px, 반경 <code>--r-control</code>) 배지 색 이름이 <code>b-green · b-amber · b-red</code> 입니다.</p>
+  <div class="sg-comp"><small>버튼 — .btn + .btn-primary / .btn-secondary / .btn-line</small>
+    <button class="btn btn-primary">신청하기</button><button class="btn btn-secondary">다른 모임 둘러보기</button><button class="btn btn-line">전체 보기</button><button class="btn btn-primary" disabled>비활성</button>
+  </div>
+  <div class="sg-comp"><small>칩 — .chip / .chip.is-on, 선택 — .choice</small>
+    <button class="chip is-on">전체</button><button class="chip">이번 주말</button><button class="chip">평일 저녁</button><button class="choice is-on">직장인</button><button class="choice">대학생</button>
+  </div>
+  <div class="sg-comp"><small>배지 — .badge + .badge-accent / .badge-ok / .badge-soft / .badge-muted</small>
+    <span class="badge badge-accent">마감 임박</span><span class="badge badge-ok">3회 진행</span><span class="badge badge-soft">새 모임</span><span class="badge badge-muted">모집 마감</span>
+  </div>
+  <div class="sg-comp"><small>좌석 점 — .seats (UI.seats)</small>
+    <span class="seats"><i class="on"></i><i></i><i></i><b>2자리 남음</b></span>
+    <span class="seats is-last"><i class="on"></i><i class="on"></i><i></i><b>1자리 남음</b></span>
+    <span class="seats is-full"><i class="on"></i><i class="on"></i><i class="on"></i><b>마감</b></span>
+  </div>
+  <div class="sg-comp" style="display:grid"><small>입력칸 — .field + .input / .hint / .field-err</small>
+    <div class="field"><label for="sg-in">이름</label><input id="sg-in" class="input" placeholder="김하나"><p class="hint">도움말</p></div>
+    <div class="field"><label for="sg-err">휴대폰 번호</label><input id="sg-err" class="input" aria-invalid="true" value="010-123"><p class="field-err">010-0000-0000 형식으로 입력해 주세요.</p></div>
+  </div>
+  <div class="sg-comp" style="display:grid"><small>정보 상자 — .notice</small>
+    <div class="notice"><b>신청 후 이렇게 진행돼요</b><ol><li>운영자 검토</li><li>참여 확인 링크 도착</li></ol></div>
+  </div>
+</main>
+<script>
+(function () {
+  'use strict';
+  const root = document.documentElement;
+  document.querySelectorAll('[data-theme-set]').forEach(b => b.addEventListener('click', () => {
+    const t = b.dataset.themeSet;
+    if (t) root.dataset.theme = t; else delete root.dataset.theme;
+    document.querySelectorAll('[data-theme-set]').forEach(x => x.classList.toggle('is-on', x === b));
+    draw();
+  }));
+  document.querySelector('[data-theme-set=""]').classList.add('is-on');
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let groups = [];
+
+  // tokens.css 의 첫 :root 블록을 "구역 주석 → 토큰 줄" 구조로 읽는다. 한 줄의 끝 주석은 그 줄의 모든 토큰에 붙는다.
+  function parse(css) {
+    const start = css.indexOf(':root {'), end = css.indexOf('@media (prefers-color-scheme: dark)');
+    const out = []; let cur = null;
+    css.slice(start, end).split('\n').forEach(line => {
+      const head = line.match(/^\s*\/\*\s*(\d+\.\s*[^*]+?)\s*\*\/\s*$/);
+      if (head) { cur = { title: head[1], items: [] }; out.push(cur); return; }
+      const note = (line.match(/\/\*\s*(.*?)\s*\*\/\s*$/) || [])[1] || '';
+      const code = line.replace(/\/\*.*?\*\//g, '');
+      for (const m of code.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) { if (cur) cur.items.push({ name: m[1], note }); }
+    });
+    return out.filter(g => g.items.length);
+  }
+  const val = name => getComputedStyle(root).getPropertyValue(name).trim();
+
+  function draw() {
+    const html = groups.map(g => {
+      const kind = /색/.test(g.title) ? 'color' : /글자 크기/.test(g.title) ? 'size' : /반경/.test(g.title) ? 'radius' : /여백/.test(g.title) ? 'space' : /글꼴/.test(g.title) ? 'font' : 'plain';
+      let body;
+      if (kind === 'color') {
+        body = `<div class="sg-grid">${g.items.map(t => `<div class="sg-tok"><div class="sw checker"><i style="background:var(${t.name})"></i></div><div class="meta"><code>${t.name}</code><span class="val">${esc(val(t.name))}</span>${t.note ? `<span class="desc">${esc(t.note)}</span>` : ''}</div></div>`).join('')}</div>`;
+      } else {
+        const demo = t => kind === 'size' ? `<span class="demo" style="font-size:var(${t.name})">오늘의 취향 39,000원</span>`
+          : kind === 'radius' ? `<div class="sg-box" style="border-radius:var(${t.name})"></div>`
+          : kind === 'space' ? `<div style="width:var(${t.name});height:16px;background:var(--accent)"></div>`
+          : kind === 'font' ? `<span class="demo" style="font-family:var(${t.name});font-size:var(--fs-17)">오늘의 취향 Taste 2026</span>`
+          : '<span></span>';
+        body = `<div class="sg-rows">${g.items.map(t => `<div class="sg-row"><div><code>${t.name}</code><div class="val">${esc(val(t.name))}</div></div>${demo(t)}<span class="desc">${esc(t.note)}</span></div>`).join('')}</div>`;
+      }
+      return `<h2>${esc(g.title)}</h2>${body}`;
+    }).join('');
+    document.getElementById('tokens').innerHTML = html + '<p class="sg-note" style="margin-top:var(--sp-16)">다크 테마 값은 tokens.css 아래쪽 두 블록에 있습니다. 위 테마 버튼으로 전환해 확인하세요.</p>';
+  }
+
+  fetch('/assets/css/tokens.css').then(r => r.text()).then(css => { groups = parse(css); draw(); })
+    .catch(() => { document.getElementById('tokens').innerHTML = '<p class="sg-note">tokens.css 를 불러오지 못했어요. 서버(npm start)로 열어주세요.</p>'; });
+})();
+</script>
+</body>
+</html>

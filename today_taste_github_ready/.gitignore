@@ -16,6 +16,9 @@ data/*.sqlite-journal
 data/*.sqlite-wal
 data/*.sqlite-shm
 data/*.db
+data/*.seed.json
+# 운영콘솔에서 올린 사진 (서버에만 두고 DB와 함께 백업)
+data/uploads/
 !data/.gitkeep
 
 # Logs
@@ -31,4 +34,5 @@ Thumbs.db
 .idea/
 *.sublime-project
 *.sublime-workspace
-.agents/
+.claude/
+CLAUDE.local.md

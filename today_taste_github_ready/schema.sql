@@ -32,6 +32,14 @@ CREATE TABLE IF NOT EXISTS groups (
   prep_json TEXT NOT NULL DEFAULT '[]',
   refund_policy TEXT NOT NULL DEFAULT '',
   faq_json TEXT NOT NULL DEFAULT '[]',
+  cover_url TEXT NOT NULL DEFAULT '',
+  gallery_json TEXT NOT NULL DEFAULT '[]',
+  for_whom_json TEXT NOT NULL DEFAULT '[]',
+  includes_json TEXT NOT NULL DEFAULT '[]',
+  fee_note TEXT NOT NULL DEFAULT '',
+  host_bio TEXT NOT NULL DEFAULT '',
+  host_photo_url TEXT NOT NULL DEFAULT '',
+  place_note TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
 
@@ -48,7 +56,7 @@ CREATE TABLE IF NOT EXISTS schedules (
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
   place TEXT NOT NULL,
-  capacity INTEGER NOT NULL DEFAULT 3 CHECK(capacity > 0),
+  capacity INTEGER NOT NULL DEFAULT 2 CHECK(capacity > 0),
   fee INTEGER NOT NULL DEFAULT 0 CHECK(fee >= 0),
   cancelled INTEGER NOT NULL DEFAULT 0,
   occurred INTEGER NOT NULL DEFAULT 0,
@@ -67,6 +75,8 @@ CREATE TABLE IF NOT EXISTS applications (
   ad_source TEXT NOT NULL DEFAULT '직접/기타',
   preferred_times TEXT NOT NULL DEFAULT '[]',
   selection_method TEXT NOT NULL DEFAULT '직접',
+  motivation TEXT NOT NULL DEFAULT '',
+  marketing_ok INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT '접수',
   applied_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
   approved_at TEXT,
@@ -76,6 +86,7 @@ CREATE TABLE IF NOT EXISTS applications (
   paid_at TEXT,
   attendance TEXT,
   review_token TEXT UNIQUE,
+  purged_at TEXT,
   UNIQUE(schedule_id, phone)
 );
 
@@ -104,6 +115,8 @@ CREATE TABLE IF NOT EXISTS reviews (
   text TEXT NOT NULL DEFAULT '',
   report INTEGER NOT NULL DEFAULT 0,
   report_text TEXT NOT NULL DEFAULT '',
+  publish_ok INTEGER NOT NULL DEFAULT 0,
+  hidden INTEGER NOT NULL DEFAULT 0,
   submitted_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
 
