@@ -4,7 +4,7 @@
 > **기록 범위**: 기능·API·DB·운영 설정처럼 **다른 사람의 작업에 영향을 주는 변경**만 적습니다. 색·여백·문구 같은 디자인 변경은 기능에 영향이 없으므로 적지 않습니다.
 > **갱신 규칙**: 작업할 때마다 이 문서를 함께 갱신합니다(에이전트 지침: `.agents/AGENTS.md` 의 "작업 현황 문서" 절).
 
-**마지막 갱신**: 2026-09-27 · **현재 브랜치 상태**: 개편 작업은 `feat/redesign` 에 있고 **`main` 에 아직 병합되지 않았습니다** (커밋 31개, 테스트 48/48 통과).
+**마지막 갱신**: 2026-09-29 · **현재 브랜치 상태**: `feat/redesign` 개편 작업이 `main` 에 병합됨 (테스트 48/48 통과).
 
 ---
 
@@ -44,13 +44,18 @@
 
 ## 2. 날짜별 구현 기록 (기능·백엔드)
 
-### 2026-09-27 — 다크 모드 전환 탭·움직임 효과 (`feat/redesign`, 미병합)
+### 2026-09-29 — `feat/redesign` 브랜치를 `main` 에 병합 (`main`, 병합 완료)
+
+- 브랜치 병합: 프론트엔드 전면 개편, 디자인 시스템(토큰/스타일가이드), 정원 개편(1+2=최대 3명), 다크모드 및 모션 인터랙션, 로컬 데모 환경(`npm run dev:demo`) 등 `feat/redesign` 작업 일체를 `main` 브랜치에 병합
+- 개발 환경: 테스트 전체 통과 (48/48)
+
+### 2026-09-27 — 다크 모드 전환 탭·움직임 효과 (`feat/redesign`, 병합 완료)
 
 - 신청자 기능: 푸터에 **화면 테마 탭**(해=라이트 | 달=다크 아이콘, 글자 없음). 고르기 전에는 기기 설정을 따르고, 누르면 브라우저 `localStorage` 의 `tt_theme`(light·dark)에 기억함. 새 파일 `public/assets/js/theme.js` 를 `index.html`·`participation.html`·`review.html` 의 <head> 에서 CSS보다 먼저 불러 첫 화면이 깜빡이지 않게 함(운영콘솔은 기기 설정 그대로)
 - 신청자 기능: 누름·등장·선택·시트·토스트 움직임 효과. `ui.js` 에 `UI.animateIn`·`UI.staggerIn`·`UI.reducedMotion` 추가, `UI.closeSheet()` 는 닫는 효과가 끝난 뒤 지움(바로 지우려면 `closeSheet(true)`). 기기의 동작 줄이기 설정이면 모두 꺼짐
 - 개발 환경: 테스트 전체 통과 (48/48)
 
-### 2026-09-26 — 타겟층 확대(대학생·청년) 및 정원 기준(진행자 1명 + 참여자 2명) 개편 (`feat/redesign`, 미병합)
+### 2026-09-26 — 타겟층 확대(대학생·청년) 및 정원 기준(진행자 1명 + 참여자 2명) 개편 (`feat/redesign`, 병합 완료)
 
 - DB: 스케줄 기본 신청 정원 `capacity` 를 `DEFAULT 2` 로 변경 (`schema.sql`)
 - 서버/API: 일정 생성 시 기본 정원 fallback을 2명으로 수정 (`server.js`)
@@ -60,7 +65,7 @@
 - 문서: 서비스 컨셉 `docs/CONCEPT.md` 추가(기능·디자인 결정 기준)
 - 개발 환경: 데모 시드 데이터 정원(2명) 및 관련 소개 문구 일치화 (`scripts/seed-demo.js`), 테스트 전체 통과 (48/48)
 
-### 2026-09-25 — 사진 업로드 (`feat/redesign`, 미병합)
+### 2026-09-25 — 사진 업로드 (`feat/redesign`, 병합 완료)
 
 - 서버/API: `POST /api/admin/uploads` 추가(총괄자 전용). 새 패키지 없이 `express.raw` 로 파일을 받고, `lib/upload.js` 가 파일 앞부분으로 JPG·PNG·WebP 인지 확인(SVG 등 거절), 무작위 이름으로 DB 옆 `uploads/` 에 저장, `/uploads/` 로 제공(`nosniff`). 5MB 초과는 413, 감사 로그 `upload_image`
 - 운영콘솔: 모임체 폼의 대표 사진·추가 사진(여러 장)·호스트 사진 칸에 "사진 올리기" 버튼. 올리면 주소 칸이 채워지고, 저장을 눌러야 반영. 주소 직접 입력도 그대로 가능
@@ -68,7 +73,7 @@
 - 개발 환경: `npm run dev:demo` (`scripts/dev-demo.js`) 추가 — 다른 컴퓨터에서 클론해도 데모 화면(사진 포함)이 같게 보이도록 임시 DB를 자동으로 새로 만듦. 시드 스크립트 해시·날짜는 `data/dev_temp.sqlite.seed.json`(git 제외)에 기록. `start-dev-server` 스킬·README·AGENTS 를 이 명령 기준으로 갱신
 - 운영콘솔: 사이드바·로그인 화면에 "홈페이지로 가기" 링크
 
-### 2026-09-24 — 프론트엔드 개편과 운영 기능 보강 (`feat/redesign`, 미병합)
+### 2026-09-24 — 프론트엔드 개편과 운영 기능 보강 (`feat/redesign`, 병합 완료)
 
 기획 근거: [01-reference-analysis.md](design/01-reference-analysis.md), [02-redesign-plan.md](design/02-redesign-plan.md) · 구현 계획: [plans/2026-09-24-frontend-redesign.md](superpowers/plans/2026-09-24-frontend-redesign.md)
 
